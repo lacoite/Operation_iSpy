@@ -13,4 +13,11 @@
         android:textSize="50dp"
         android:text="If you can see this, you are in the project!"
         android:layout_gravity="center"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="50dp"
+        android:text="Ashley is here!"
+        android:layout_gravity="center"/>
 </LinearLayout>
