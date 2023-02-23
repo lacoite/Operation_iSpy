@@ -27,4 +27,18 @@
         android:textSize="50dp"
         android:text="Sean is here!"
         android:layout_gravity="center"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="50dp"
+        android:text="For Khai"
+        android:layout_gravity="center"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="50dp"
+        android:text="For Amir"
+        android:layout_gravity="center"/>
 </LinearLayout>
