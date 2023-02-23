@@ -10,35 +10,35 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="50dp"
+        android:layout_gravity="center"
         android:text="If you can see this, you are in the project! Sound off:"
-        android:layout_gravity="center"/>
+        android:textSize="50dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="50dp"
+        android:layout_gravity="center"
         android:text="Ashley is here!"
-        android:layout_gravity="center"/>
+        android:textSize="50dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="50dp"
+        android:layout_gravity="center"
         android:text="Sean is here!"
-        android:layout_gravity="center"/>
+        android:textSize="50dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="50dp"
-        android:text="For Khai"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:text="Khai is here!"
+        android:textSize="50dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="50dp"
+        android:layout_gravity="center"
         android:text="For Amir"
-        android:layout_gravity="center"/>
+        android:textSize="50dp" />
 </LinearLayout>
