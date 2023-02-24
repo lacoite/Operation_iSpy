@@ -7,38 +7,22 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="If you can see this, you are in the project! Sound off:"
-        android:textSize="50dp" />
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:id="@+id/imageView"
+        android:layout_weight="1"
+        />
 
-    <TextView
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:id="@+id/camButton"
+        android:textAllCaps="false"
+        android:text="Open Camera"
         android:layout_gravity="center"
-        android:text="Ashley is here!"
-        android:textSize="50dp" />
+        />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Sean is here!"
-        android:textSize="50dp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Khai is here!"
-        android:textSize="50dp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Amir is here!"
-        android:textSize="50dp" />
 </LinearLayout>
