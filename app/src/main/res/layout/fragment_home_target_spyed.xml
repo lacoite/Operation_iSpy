@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp"
+    tools:context=".HomePromptFragment">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="50dp"
+        android:gravity="center"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="30dp"
+        android:fontFamily="@font/square"
+
+        android:text="I SPYED A"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="50dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="30dp"
+        android:fontFamily="@font/square"
+        android:textStyle="italic"
+        android:text="Pencil"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="50dp"
+        android:gravity="center"
+        android:layout_marginBottom="50dp"
+        android:fontFamily="@font/square"
+        android:text="IN 3H 28M"/>
+
+
+    <Button
+        android:id="@+id/analyzeCaptureButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textSize="30sp"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="50dp"
+        android:fontFamily="@font/square"
+        android:lines="1"
+        android:text="Tweet Capture"
+        android:onClick="tweetCaptureClicked"/>
+
+
+</LinearLayout>

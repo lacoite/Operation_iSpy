@@ -16,7 +16,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentContainerView"
-        android:name="edu.floridapoly.sse.operationispy.HomePromptFragment"
+        android:name="edu.floridapoly.sse.operationispy.HomeImageDisplayFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
