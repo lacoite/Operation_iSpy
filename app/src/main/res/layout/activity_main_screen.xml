@@ -7,16 +7,103 @@
     tools:context=".MainScreenActivity"
     android:orientation="vertical">
 
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/fragmentContainerView2"
-        android:name="edu.floridapoly.sse.operationispy.HomeHeaderFragment"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="20dp"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="20dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="8"
+                android:textSize="35sp"
+                android:layout_gravity="bottom"
+                android:fontFamily="@font/square"
+                android:lines="1"
+                android:text="Agent Lasak"/>
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:padding="0dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/square"
+                android:text="S"
+                />
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:padding="0dp"
+                android:fontFamily="@font/square"
+                android:layout_weight="1"
+                android:text="\?"
+                />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="40dp"
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="25sp"
+                android:layout_marginLeft="10dp"
+                android:fontFamily="@font/square"
+                android:text="Assets: "
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:textSize="25sp"
+                android:fontFamily="@font/square"
+                android:text="1,347"
+                />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="15dp"
+                android:paddingBottom="15dp"
+                android:maxLines="1"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:text="Agent Rank"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+<!--    <androidx.fragment.app.FragmentContainerView-->
+<!--        android:id="@+id/fragmentContainerView2"-->
+<!--        android:name="edu.floridapoly.sse.operationispy.HomeHeaderFragment"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"/>-->
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentContainerView"
-        android:name="edu.floridapoly.sse.operationispy.HomeImageDisplayFragment"
+        android:name="edu.floridapoly.sse.operationispy.HomePromptFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
