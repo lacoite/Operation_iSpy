@@ -1,8 +1,5 @@
 package edu.floridapoly.sse.operationispy;
 
-import android.Manifest;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
@@ -11,20 +8,16 @@ import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
-import androidx.camera.extensions.HdrImageCaptureExtender;
+import androidx.camera.core.impl.ImageCaptureConfig;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -34,22 +27,24 @@ import android.widget.Toast;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class CameraActivity extends AppCompatActivity {
-
-
+    //TODO: Reimplement permissions to have a custom message "Operation iSpy will need to access your camera to run"
+    //TODO: Revise action completed if the permissions are not granted (currently closes app, instead do not launch camera activity)
+    //TODO: Implement deletion of currentImage.jpg before taking new image to prevent error, also implement deletion at midnight (may be in different activity)
     private Executor executor = Executors.newSingleThreadExecutor();
     private int REQUEST_CODE_PERMISSIONS = 1001;
     private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA"};
 
     PreviewView mPreviewView;
     Button captureImage;
+    ImageCapture imageCapture;
+    File file;
+
+    //Temporary imageView for testing image file saving and retrieving
     ImageView capturedImage;
 
     @Override
@@ -61,25 +56,22 @@ public class CameraActivity extends AppCompatActivity {
         captureImage = findViewById(R.id.imageCaptureButton);
         capturedImage = findViewById(R.id.capturedImg);
 
+        //If all permissions are granted, start the camera. Otherwise request permissions defined in REQUIRED_PERMISSIONS array
         if(allPermissionsGranted()){
             startCamera(); //start camera if permission has been granted by user
         } else{
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
+            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS); //request permissions if they have not been granted
         }
     }
 
     private void startCamera() {
-
         final ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
-
         cameraProviderFuture.addListener(new Runnable() {
             @Override
             public void run() {
                 try {
-
                     ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
                     bindPreview(cameraProvider);
-
                 } catch (ExecutionException | InterruptedException e) {
                     // No errors need to be handled for this Future.
                     // This should never be reached.
@@ -88,78 +80,60 @@ public class CameraActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
+    //Builds camera preview and sets onClick listener for capture button
     void bindPreview(@NonNull ProcessCameraProvider cameraProvider) {
-
         Preview preview = new Preview.Builder()
                 .build();
-
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
-
         ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
                 .build();
-
         ImageCapture.Builder builder = new ImageCapture.Builder();
 
-        //Vendor-Extensions (The CameraX extensions dependency in build.gradle)
-        HdrImageCaptureExtender hdrImageCaptureExtender = HdrImageCaptureExtender.create(builder);
-
-        // Query if extension is available (optional).
-        if (hdrImageCaptureExtender.isExtensionAvailable(cameraSelector)) {
-            // Enable the extension if available.
-            hdrImageCaptureExtender.enableExtension(cameraSelector);
-        }
-
-        final ImageCapture imageCapture = builder
+        imageCapture = builder
                 .setTargetRotation(this.getWindowManager().getDefaultDisplay().getRotation())
                 .build();
         preview.setSurfaceProvider(mPreviewView.getSurfaceProvider());
-        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, preview, imageAnalysis, imageCapture);
 
+        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, preview, imageAnalysis, imageCapture);
 
-
+        //When the capture button is clicked, capture and image. If a capture is successful, set the imageView to te image
         captureImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US);
-                File file = new File(getBatchDirectoryName(), mDateFormat.format(new Date())+ ".jpg");
-
-                ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file).build();
-                imageCapture.takePicture(outputFileOptions, executor, new ImageCapture.OnImageSavedCallback () {
-                    @Override
-                    public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
-                        new Handler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(CameraActivity.this, "Image Saved successfully", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                    @Override
-                    public void onError(@NonNull ImageCaptureException error) {
-                        error.printStackTrace();
-                    }
-                });
+                //Capture image, set the temporary imageView to the image if successful, otherwise print error StackTrace
+                capturePic();
+                try {
+                    capturedImage.setImageBitmap(BitmapFactory.decodeFile("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.jpg"));
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
             }
         });
     }
 
-    public String getBatchDirectoryName() {
+    //Capture and save the an image to the cache directory under the name "currentImage.jpg"
+    private void capturePic(){
+        //Create the file in the cache directory
+        file = new File(getCacheDir(), "currentImage.jpg");
 
-        String app_folder_path = "";
-        app_folder_path = Environment.getExternalStorageDirectory().toString() + "/images";
-        File dir = new File(app_folder_path);
-        if (!dir.exists() && !dir.mkdirs()) {
-
-        }
-
-        return app_folder_path;
+        //Capture image and save to the cache directory, if failed, print exception StackTrace
+        imageCapture.takePicture(new ImageCapture.OutputFileOptions.Builder(file).build(), executor, new ImageCapture.OnImageSavedCallback(){
+            @Override
+            public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
+                String message = "Image saved at " + file.getAbsolutePath();
+                Log.i("Image Capture Successful: ", "YES" + message);
+            }
+            @Override
+            public void onError(@NonNull ImageCaptureException exception) {
+                exception.printStackTrace();
+            }
+        });
     }
 
+    //Check if all desired permissions are granted
     private boolean allPermissionsGranted(){
-
         for(String permission : REQUIRED_PERMISSIONS){
             if(ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED){
                 return false;
@@ -167,13 +141,16 @@ public class CameraActivity extends AppCompatActivity {
         }
         return true;
     }
+
+    //If user accepts permissions, launch camera
+    //This will be changed later, since permission will be requested from the home fragement before the camera is launched
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-        if(requestCode == REQUEST_CODE_PERMISSIONS){
-            if(allPermissionsGranted()){
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE_PERMISSIONS) {
+            if (allPermissionsGranted()) {
                 startCamera();
-            } else{
+            } else {
                 Toast.makeText(this, "Permissions not granted by the user.", Toast.LENGTH_SHORT).show();
                 this.finish();
             }
