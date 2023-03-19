@@ -13,8 +13,12 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LifecycleOwner;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -106,6 +110,11 @@ public class CameraActivity extends AppCompatActivity {
                 capturePic();
                 try {
                     capturedImage.setImageBitmap(BitmapFactory.decodeFile("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.jpg"));
+                    //Intent resultIntent = new Intent();
+                    //setResult(1000, resultIntent);
+                    finishActivity(1000);
+                    finish();
+
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }

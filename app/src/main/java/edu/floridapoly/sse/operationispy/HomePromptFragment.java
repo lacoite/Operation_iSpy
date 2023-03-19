@@ -1,8 +1,11 @@
 package edu.floridapoly.sse.operationispy;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,72 +13,69 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link HomePromptFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.io.File;
 
-/*******
- * IGNORE THIS CODE, I NEED TO REIMPLEMENT THE CAMERA!!! -L
- */
 public class HomePromptFragment extends Fragment {
     View view;
     Button targetIdentifiedButton;
+    final int REQUEST_CODE = 1000;
+    File file = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.jpg");
 
-
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     public HomePromptFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment HomePromptFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-//    public static HomePromptFragment newInstance(String param1, String param2) {
-//        HomePromptFragment fragment = new HomePromptFragment();
-//        Bundle args = new Bundle();
-//        args.putString(ARG_PARAM1, param1);
-//        args.putString(ARG_PARAM2, param2);
-//        fragment.setArguments(args);
-//        return fragment;
-//    }
-//
-//    @Override
-//    public void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
-//        }
-//    }
+    //Evaluate response code (Currently only one request code, will need more later
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch(requestCode) {
+            //Swaps the fragment to the image display
+            case REQUEST_CODE:
+               // if(file.exists()){
+                    Toast.makeText(getActivity(),"Exists", Toast.LENGTH_LONG).show();
 
+                    FragmentManager fragmentManager = getParentFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager
+                            .beginTransaction();
+
+                    HomeImageDisplayFragment imageDisplayFragment = new HomeImageDisplayFragment();
+                    fragmentTransaction.replace(R.id.fragmentContainerView, imageDisplayFragment);
+                    //provide the fragment ID of your first fragment which you have given in
+                    //fragment_layout_example.xml file in place of first argument
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
+//                }
+//                else{
+//                    Toast.makeText(getActivity(),"Error creating file", Toast.LENGTH_LONG).show();
+//
+//                }
+                break;
+        }
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_home_prompt, container, false);
+
+        //Set onClick for targetIdentified button
         targetIdentifiedButton = view.findViewById(R.id.targetIdentifiedButton);
+        //When the button is clicked, start the camera activity, then wait for the response code
         targetIdentifiedButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getActivity(),"Fragment's Button", Toast.LENGTH_LONG).show();
+//                if (file.exists()) {
+//                    file.delete();
+//                    Toast.makeText(getActivity(), "Cleared the Image", Toast.LENGTH_LONG).show();
+//                }
+                Intent intent = new Intent(getActivity(), CameraActivity.class);
+
+                startActivityForResult(intent, REQUEST_CODE);
             }
         });
         return view;
+
+
     }
 }

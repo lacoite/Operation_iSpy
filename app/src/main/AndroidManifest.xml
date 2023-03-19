@@ -14,7 +14,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/TestTheme.OperationISpy"
+        android:enableOnBackInvokedCallback="true"
         tools:targetApi="31">
+        <!--added enableOnBackInvokedCallback for error-->
         <activity
             android:name=".CameraActivity"
             android:exported="true">
