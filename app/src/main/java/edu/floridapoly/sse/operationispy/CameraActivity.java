@@ -8,21 +8,20 @@ import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
-import androidx.camera.core.impl.ImageCaptureConfig;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LifecycleOwner;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Surface;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -44,22 +43,25 @@ public class CameraActivity extends AppCompatActivity {
     private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA"};
 
     PreviewView mPreviewView;
-    Button captureImage;
+    Button captureImageButton;
     ImageCapture imageCapture;
-    File file;
-
     //Temporary imageView for testing image file saving and retrieving
-    ImageView capturedImage;
+
+    File file;
+    Context context;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         mPreviewView = findViewById(R.id.previewView);
-        captureImage = findViewById(R.id.imageCaptureButton);
-        capturedImage = findViewById(R.id.capturedImg);
+        captureImageButton = findViewById(R.id.imageCaptureButton);
 
+        context = this;
         //If all permissions are granted, start the camera. Otherwise request permissions defined in REQUIRED_PERMISSIONS array
         if(allPermissionsGranted()){
             startCamera(); //start camera if permission has been granted by user
@@ -69,7 +71,8 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void startCamera() {
-        final ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+        final ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(MainScreenActivity.getContext());
+
         cameraProviderFuture.addListener(new Runnable() {
             @Override
             public void run() {
@@ -81,7 +84,7 @@ public class CameraActivity extends AppCompatActivity {
                     // This should never be reached.
                 }
             }
-        }, ContextCompat.getMainExecutor(this));
+        }, ContextCompat.getMainExecutor(MainScreenActivity.getContext()));
     }
 
     //Builds camera preview and sets onClick listener for capture button
@@ -102,37 +105,27 @@ public class CameraActivity extends AppCompatActivity {
 
         Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, preview, imageAnalysis, imageCapture);
 
-        //When the capture button is clicked, capture and image. If a capture is successful, set the imageView to te image
-        captureImage.setOnClickListener(new View.OnClickListener() {
+        //When the capture button is clicked, capture and image. If a capture is successful, set the imageView to the image
+        captureImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Capture image, set the temporary imageView to the image if successful, otherwise print error StackTrace
                 capturePic();
-                try {
-                    capturedImage.setImageBitmap(BitmapFactory.decodeFile("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.jpg"));
-                    //Intent resultIntent = new Intent();
-                    //setResult(1000, resultIntent);
-                    finishActivity(1000);
-                    finish();
-
-                } catch (Exception exception) {
-                    exception.printStackTrace();
-                }
             }
         });
     }
 
     //Capture and save the an image to the cache directory under the name "currentImage.jpg"
     private void capturePic(){
-        //Create the file in the cache directory
-        file = new File(getCacheDir(), "currentImage.jpg");
+        file = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
 
         //Capture image and save to the cache directory, if failed, print exception StackTrace
-        imageCapture.takePicture(new ImageCapture.OutputFileOptions.Builder(file).build(), executor, new ImageCapture.OnImageSavedCallback(){
+        imageCapture.takePicture(new ImageCapture.OutputFileOptions.Builder(file).build(), ContextCompat.getMainExecutor(MainScreenActivity.getContext()), new ImageCapture.OnImageSavedCallback(){
             @Override
             public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
-                String message = "Image saved at " + file.getAbsolutePath();
-                Log.i("Image Capture Successful: ", "YES" + message);
+                Intent resultIntent = new Intent();
+                setResult(101, resultIntent);
+                finish();
             }
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
@@ -152,7 +145,7 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     //If user accepts permissions, launch camera
-    //This will be changed later, since permission will be requested from the home fragement before the camera is launched
+    //This will be changed later, since permission will be requested from the home fragment before the camera is launched
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

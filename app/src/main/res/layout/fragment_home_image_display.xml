@@ -43,8 +43,7 @@
             android:layout_marginRight="5dp"
             android:layout_marginBottom="50dp"
             android:fontFamily="@font/square"
-            android:text="RECAPTURE"
-            android:onClick="recaptureClicked"/>
+            android:text="RECAPTURE" />
 
         <Button
             android:id="@+id/analyzeCaptureButton"
@@ -60,8 +59,7 @@
             android:layout_marginBottom="50dp"
             android:fontFamily="@font/square"
             android:lines="1"
-            android:text="Analyze Capture"
-            android:onClick="analyzeCaptureClicked"/>
+            android:text="Analyze Capture" />
 
 
     </LinearLayout>

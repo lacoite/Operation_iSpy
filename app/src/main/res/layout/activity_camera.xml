@@ -13,12 +13,6 @@
         android:layout_height="500dp"
         android:layout_weight="1" />
 
-    <ImageView
-        android:id="@+id/capturedImg"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="@mipmap/ic_launcher"/>
-
     <Button
         android:id="@+id/imageCaptureButton"
         android:layout_width="match_parent"
