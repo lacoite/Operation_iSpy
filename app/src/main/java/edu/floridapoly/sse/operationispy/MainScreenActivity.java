@@ -2,7 +2,6 @@ package edu.floridapoly.sse.operationispy;
 
 //import android.support.v7.app.AppCompatActivity;
 import android.Manifest;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -11,35 +10,65 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+//import com.google.auth.oauth2.GoogleCredentials;
+//import com.google.cloud.vision.v1.AnnotateImageRequest;
+//import com.google.cloud.vision.v1.AnnotateImageResponse;
+//import com.google.cloud.vision.v1.BatchAnnotateImagesResponse;
+//import com.google.cloud.vision.v1.EntityAnnotation;
+//import com.google.cloud.vision.v1.Feature;
+//import com.google.cloud.vision.v1.Feature.Type;
+//
+//import com.google.cloud.vision.v1.Image;
+//import com.google.cloud.vision.v1.ImageAnnotatorClient;
+
+import com.google.mlkit.common.model.LocalModel;
+import com.google.mlkit.vision.label.ImageLabel;
+import com.google.mlkit.vision.label.ImageLabeler;
+import com.google.mlkit.vision.label.ImageLabeling;
+import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
+import com.google.mlkit.vision.objects.DetectedObject;
+import com.google.mlkit.vision.objects.ObjectDetection;
+import com.google.mlkit.vision.objects.ObjectDetector;
+
+import com.google.mlkit.vision.objects.custom.CustomObjectDetectorOptions;
+//import com.google.protobuf.ByteString;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.util.List;
+
+//import io.grpc.netty.shaded.io.netty.util.internal.SystemPropertyUtil;
+
 
 public class MainScreenActivity extends AppCompatActivity {
 
+    private ObjectDetector objectDetector;
+    private ImageLabeler imagelabeler;
+    //private VisionImageProcessor imageProcessor;
 
     static Context context;
+
     static File finalFile = null;
     static Bitmap bitmap;
     static File tempFile = null;
-    static Bitmap tempBitmap;
+    static Bitmap rotatedBitmap;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +76,8 @@ public class MainScreenActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main_screen);
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         context = getApplicationContext();
+
+        System.setProperty("GOOGLE_APPLICATION_CREDENTIALS", "\"C:\\\\Users\\\\Latasha\\\\Downloads\\\\operation-ispy-9ed1efa38b6a.json\"");
 
         if(ContextCompat.checkSelfPermission(MainScreenActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(MainScreenActivity.this, new String[]{
@@ -77,8 +108,8 @@ public class MainScreenActivity extends AppCompatActivity {
     public static File bitmapToFile(Context context,Bitmap bitmap) { // File name like "image.png"
         //create a file to write bitmap data
         try {
-            tempFile = new File("/data/data/edu.floridapoly.sse.operationispy/cache/tempImage.png");
-            tempFile.createNewFile();
+            tempFile = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
+            //tempFile.createNewFile();
 
 //Convert bitmap to byte array
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -108,7 +139,7 @@ public class MainScreenActivity extends AppCompatActivity {
     }
     public static Bitmap getBitmap(){
         //return finalFile;
-        return tempBitmap;
+        return rotatedBitmap;
     }
 
     @Override
@@ -117,9 +148,6 @@ public class MainScreenActivity extends AppCompatActivity {
         if(requestCode == 101) {
             bitmap =  BitmapFactory.decodeFile("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
             rotateBitmap(bitmap);
-
-            //finalFile = bitmapToFile(getContext(), bitmap);
-            //finalFile = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
 
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager
@@ -141,7 +169,95 @@ public class MainScreenActivity extends AppCompatActivity {
         int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
         Matrix matrix = new Matrix();
         matrix.setRotate(90);
-        tempBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+        rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+    }
+
+    public void submitToAPI() throws IOException{
+        createCustomObjectDetectionImageProcessor();
+        RunCustomObjectDetection();
+        createLabelerImageProcessor();
+        RunLabelerDetection();
+
+
+        //finalFile = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
+        //finalFile = bitmapToFile(getContext(), rotatedBitmap);
+    }
+
+    public void createCustomObjectDetectionImageProcessor(){
+        Log.i("LOGGING: ", "Using Custom Object Detector Processor");
+        LocalModel localModel =
+                new LocalModel.Builder()
+                        .setAssetFilePath("custom_models/object_labeler.tflite")
+                        .build();
+        CustomObjectDetectorOptions customObjectDetectorOptions =
+                new CustomObjectDetectorOptions.Builder(localModel)
+                      .setDetectorMode(CustomObjectDetectorOptions.SINGLE_IMAGE_MODE)
+                      .enableMultipleObjects()
+                      .enableClassification()
+                      .setMaxPerObjectLabelCount(10)
+                      .build();
+        objectDetector = ObjectDetection.getClient(customObjectDetectorOptions);
+    }
+
+    public void createLabelerImageProcessor(){
+        Log.i("LOGGING: ", "Using Custom Image label Detector Processor");
+        ImageLabelerOptions imageLabelerOptions = new ImageLabelerOptions.Builder().build();
+        imagelabeler = ImageLabeling.getClient(imageLabelerOptions);
+    }
+
+    private void RunCustomObjectDetection(){
+        Log.i("LOGGING: ", "Try reload and detect image");
+        if(objectDetector != null){
+            objectDetector.process(rotatedBitmap, 0)
+                .addOnSuccessListener(new OnSuccessListener<List<DetectedObject>>() {
+                  @Override
+                  public void onSuccess(List<DetectedObject> detectedObjects) {
+                      if(detectedObjects.isEmpty() != true){
+                          for (DetectedObject detectedObject : detectedObjects) {
+                              for (DetectedObject.Label label : detectedObject.getLabels()) {
+                                  String text = label.getText();
+                                  //int index = label.getIndex();
+                                  //float confidence = label.getConfidence();
+                                  Log.i("OBJECT STRING", text);
+
+                              }}
+                      }else{
+                          Log.i("LOGGING: ", "NO OBJECTS FOUND");
+                      }
+
+                    //imageProxy.close();
+                  }
+                });
+        } else {
+            Log.i("LOGGING: ", "Null imageProcessor, please check adb logs for imageProcessor creation error");
+        }
+    }
+
+    private void RunLabelerDetection(){
+        Log.i("LOGGING: ", "Try reload and detect image2");
+        if(imagelabeler != null){
+            imagelabeler.process(rotatedBitmap, 0)
+                    .addOnSuccessListener(new OnSuccessListener<List<ImageLabel>>() {
+                        @Override
+                        public void onSuccess(List<ImageLabel> labels) {
+                            for (ImageLabel label : labels) {
+                                String text = label.getText();
+                                //float confidence = label.getConfidence();
+                                //int index = label.getIndex();
+                                Log.i("LOGGING: ", "FROM LABEL = " + text);
+                            }
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.i("LOGGING: ", "NO OBJECTS FOUND");
+                        }
+                    });
+
+        } else {
+            Log.i("LOGGING: ", "Null imageProcessor, please check adb logs for imageProcessor creation error");
+        }
     }
 
     public void removeFragment(){
