@@ -67,11 +67,13 @@ public class HomeImageDisplayFragment extends Fragment {
         analyzeCaptureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    ((MainScreenActivity)getActivity()).submitToAPI();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                ((MainScreenActivity)getActivity()).submitToAPI();
+            }
+        });
+        recaptureButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MainScreenActivity)getActivity()).removeFragment();
             }
         });
 

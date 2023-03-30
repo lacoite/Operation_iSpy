@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 //import com.google.auth.oauth2.GoogleCredentials;
@@ -35,6 +36,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 //import com.google.cloud.vision.v1.Image;
 //import com.google.cloud.vision.v1.ImageAnnotatorClient;
 
+import com.google.android.gms.tasks.Task;
 import com.google.mlkit.common.model.LocalModel;
 import com.google.mlkit.vision.label.ImageLabel;
 import com.google.mlkit.vision.label.ImageLabeler;
@@ -52,6 +54,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 //import io.grpc.netty.shaded.io.netty.util.internal.SystemPropertyUtil;
 
@@ -68,7 +71,9 @@ public class MainScreenActivity extends AppCompatActivity {
     static Bitmap bitmap;
     static File tempFile = null;
     static Bitmap rotatedBitmap;
-
+    //will need to be set based on a value in the firebase db
+    public static int submissionAccepted;
+    static String prompt = "phone";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,13 +82,10 @@ public class MainScreenActivity extends AppCompatActivity {
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         context = getApplicationContext();
 
-        System.setProperty("GOOGLE_APPLICATION_CREDENTIALS", "\"C:\\\\Users\\\\Latasha\\\\Downloads\\\\operation-ispy-9ed1efa38b6a.json\"");
-
         if(ContextCompat.checkSelfPermission(MainScreenActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(MainScreenActivity.this, new String[]{
                     Manifest.permission.CAMERA}, 101);
         }
-
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager
@@ -100,9 +102,6 @@ public class MainScreenActivity extends AppCompatActivity {
 //        //fragment_layout_example.xml file in place of first argument
 //        fragmentTransaction.addToBackStack(null);
 //        fragmentTransaction.commit();
-
-
-
     }
 
     public static File bitmapToFile(Context context,Bitmap bitmap) { // File name like "image.png"
@@ -172,16 +171,10 @@ public class MainScreenActivity extends AppCompatActivity {
         rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
-    public void submitToAPI() throws IOException{
-        createCustomObjectDetectionImageProcessor();
-        RunCustomObjectDetection();
-        createLabelerImageProcessor();
-        RunLabelerDetection();
-
-
-        //finalFile = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
-        //finalFile = bitmapToFile(getContext(), rotatedBitmap);
+    public void updateSubmission(){
+        submissionAccepted = 100;
     }
+
 
     public void createCustomObjectDetectionImageProcessor(){
         Log.i("LOGGING: ", "Using Custom Object Detector Processor");
@@ -197,35 +190,44 @@ public class MainScreenActivity extends AppCompatActivity {
                       .setMaxPerObjectLabelCount(10)
                       .build();
         objectDetector = ObjectDetection.getClient(customObjectDetectorOptions);
+        RunCustomObjectDetection();
     }
 
     public void createLabelerImageProcessor(){
         Log.i("LOGGING: ", "Using Custom Image label Detector Processor");
         ImageLabelerOptions imageLabelerOptions = new ImageLabelerOptions.Builder().build();
         imagelabeler = ImageLabeling.getClient(imageLabelerOptions);
+        RunLabelerDetection();
     }
 
-    private void RunCustomObjectDetection(){
+    public void RunCustomObjectDetection(){
         Log.i("LOGGING: ", "Try reload and detect image");
         if(objectDetector != null){
             objectDetector.process(rotatedBitmap, 0)
+                    .addOnCompleteListener(new OnCompleteListener<List<DetectedObject>>() {
+                        @Override
+                        public void onComplete(@NonNull Task<List<DetectedObject>> task) {
+                                createLabelerImageProcessor();
+                        }
+                    })
                 .addOnSuccessListener(new OnSuccessListener<List<DetectedObject>>() {
                   @Override
                   public void onSuccess(List<DetectedObject> detectedObjects) {
                       if(detectedObjects.isEmpty() != true){
                           for (DetectedObject detectedObject : detectedObjects) {
                               for (DetectedObject.Label label : detectedObject.getLabels()) {
-                                  String text = label.getText();
+                                  String text = label.getText().toLowerCase(Locale.ROOT);
                                   //int index = label.getIndex();
                                   //float confidence = label.getConfidence();
                                   Log.i("OBJECT STRING", text);
-
+                                  if(text.contains(prompt.toLowerCase(Locale.ROOT))){
+                                      Log.i("FOUND!!!", "IN OD");
+                                      updateSubmission();
+                                  }
                               }}
                       }else{
                           Log.i("LOGGING: ", "NO OBJECTS FOUND");
                       }
-
-                    //imageProxy.close();
                   }
                 });
         } else {
@@ -233,18 +235,46 @@ public class MainScreenActivity extends AppCompatActivity {
         }
     }
 
-    private void RunLabelerDetection(){
+    public void RunLabelerDetection(){
         Log.i("LOGGING: ", "Try reload and detect image2");
         if(imagelabeler != null){
             imagelabeler.process(rotatedBitmap, 0)
+                    .addOnCompleteListener(new OnCompleteListener<List<ImageLabel>>() {
+                        @Override
+                        public void onComplete(@NonNull Task<List<ImageLabel>> task) {
+                            if(submissionAccepted == 100){
+                                FragmentManager fragmentManager = getSupportFragmentManager();
+                                FragmentTransaction fragmentTransaction = fragmentManager
+                                        .beginTransaction();
+                                Fragment homeAnalysisTCCFragment = new HomeAnalysisTCCFragment();
+                                fragmentTransaction.replace(R.id.fragmentContainerView, homeAnalysisTCCFragment);
+                                fragmentTransaction.addToBackStack(null);
+                                fragmentTransaction.commit();
+                            }
+                            else{
+                                FragmentManager fragmentManager = getSupportFragmentManager();
+                                FragmentTransaction fragmentTransaction = fragmentManager
+                                        .beginTransaction();
+                                Fragment homeAnalysisTNIFragment = new HomeAnalysisTNIFragment();
+                                fragmentTransaction.replace(R.id.fragmentContainerView, homeAnalysisTNIFragment);
+                                fragmentTransaction.addToBackStack(null);
+                                fragmentTransaction.commit();
+                            }
+                        }
+                    })
                     .addOnSuccessListener(new OnSuccessListener<List<ImageLabel>>() {
                         @Override
                         public void onSuccess(List<ImageLabel> labels) {
                             for (ImageLabel label : labels) {
-                                String text = label.getText();
+                                String text = label.getText().toLowerCase(Locale.ROOT);
                                 //float confidence = label.getConfidence();
                                 //int index = label.getIndex();
                                 Log.i("LOGGING: ", "FROM LABEL = " + text);
+                                if(text.contains(prompt.toLowerCase(Locale.ROOT))){
+                                    Log.i("FOUND!!!", "IN LABELER");
+                                    //submissionAccepted = 100;
+                                    updateSubmission();
+                                }
                             }
                         }
                     })
@@ -258,8 +288,18 @@ public class MainScreenActivity extends AppCompatActivity {
         } else {
             Log.i("LOGGING: ", "Null imageProcessor, please check adb logs for imageProcessor creation error");
         }
+        Log.i("ABOUT TO CHECK", " SUB");
     }
 
+    public void submitToAPI(){
+//        finalFile = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
+//        finalFile = bitmapToFile(getContext(), rotatedBitmap);
+        submissionAccepted = 0;
+        createCustomObjectDetectionImageProcessor();
+        //RunCustomObjectDetection();
+       // createLabelerImageProcessor();
+        //RunLabelerDetection();
+    }
     public void removeFragment(){
         Intent intent = new Intent(getContext(), CameraActivity.class);
         startActivityForResult(intent, 101);
