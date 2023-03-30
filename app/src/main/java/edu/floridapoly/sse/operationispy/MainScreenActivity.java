@@ -25,16 +25,6 @@ import androidx.fragment.app.FragmentTransaction;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-//import com.google.auth.oauth2.GoogleCredentials;
-//import com.google.cloud.vision.v1.AnnotateImageRequest;
-//import com.google.cloud.vision.v1.AnnotateImageResponse;
-//import com.google.cloud.vision.v1.BatchAnnotateImagesResponse;
-//import com.google.cloud.vision.v1.EntityAnnotation;
-//import com.google.cloud.vision.v1.Feature;
-//import com.google.cloud.vision.v1.Feature.Type;
-//
-//import com.google.cloud.vision.v1.Image;
-//import com.google.cloud.vision.v1.ImageAnnotatorClient;
 
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
@@ -43,6 +33,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.mlkit.common.model.LocalModel;
+import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.label.ImageLabel;
 import com.google.mlkit.vision.label.ImageLabeler;
 import com.google.mlkit.vision.label.ImageLabeling;
@@ -52,7 +43,6 @@ import com.google.mlkit.vision.objects.ObjectDetection;
 import com.google.mlkit.vision.objects.ObjectDetector;
 
 import com.google.mlkit.vision.objects.custom.CustomObjectDetectorOptions;
-//import com.google.protobuf.ByteString;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -60,26 +50,33 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-
-//import io.grpc.netty.shaded.io.netty.util.internal.SystemPropertyUtil;
 
 
 public class MainScreenActivity extends AppCompatActivity {
 
-    private ObjectDetector objectDetector;
-    private ImageLabeler imagelabeler;
-    //private VisionImageProcessor imageProcessor;
-
     static Context context;
 
+    private ObjectDetector objectDetector;
+    private ImageLabeler imagelabeler;
+
     static File finalFile = null;
-    static Bitmap bitmap;
+    static Bitmap tempBitmap;
     static File tempFile = null;
-    static Bitmap rotatedBitmap;
+    static Bitmap finalBitmap;
+
     //will need to be set based on a value in the firebase db
     public static int submissionAccepted;
-    static String prompt = "phone";
+    static String prompt;
+
+    //Fragments
+    Fragment homeHeaderFragment;
+    Fragment homePromptFragment;
+    Fragment homeImageDisplayFragment;
+    Fragment homeAnalysisTCCFragment;
+    //combine with IC fragment format since it is no longer needed
+    Fragment homeAnalysisTNIFragment;
+    Fragment homeTargetSpyedFragment;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,11 +90,11 @@ public class MainScreenActivity extends AppCompatActivity {
                     Manifest.permission.CAMERA}, 101);
         }
 
-        //initialize firestore
+        //Initialize Firestore
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        DocumentReference docRef = db.collection("Prompts").document("1");
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        DocumentReference docRefForPrompt = db.collection("Prompts").document("1");
+        docRefForPrompt.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
@@ -134,35 +131,22 @@ public class MainScreenActivity extends AppCompatActivity {
             }
         });
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager
-                .beginTransaction();
-        Fragment homePromptFragment = new HomePromptFragment();
-        fragmentTransaction.replace(R.id.fragmentContainerView, homePromptFragment);
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
 
-
-//        HomeImageDisplayFragment imageDisplayFragment = new HomeImageDisplayFragment();
-//        fragmentTransaction.replace(R.id.fragmentContainerView, imageDisplayFragment);
-//        //provide the fragment ID of your first fragment which you have given in
-//        //fragment_layout_example.xml file in place of first argument
-//        fragmentTransaction.addToBackStack(null);
-//        fragmentTransaction.commit();
+        fragmentSwap(1);
     }
 
-    public static File bitmapToFile(Context context,Bitmap bitmap) { // File name like "image.png"
-        //create a file to write bitmap data
+    //Creates updates the image file with the finalBitmap
+    public static File bitmapToFile(Context context,Bitmap bitmap) {
+        //Create a file to write bitmap data
         try {
             tempFile = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
-            //tempFile.createNewFile();
 
-//Convert bitmap to byte array
+            //Convert bitmap to byte array
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.PNG, 100 , bos); // YOU can also save it in JPEG
             byte[] bitmapdata = bos.toByteArray();
 
-//write the bytes in file
+            //Write the bytes in file
             FileOutputStream fos = new FileOutputStream(tempFile);
             fos.write(bitmapdata);
             fos.flush();
@@ -175,36 +159,34 @@ public class MainScreenActivity extends AppCompatActivity {
     }
 
 
+    //Returns application's context
     public static Context getContext(){
         return context;
     }
 
+    //Returns finalFile
     public static File getFile(){
-        //return finalFile;
         return finalFile;
     }
+
+    //Returns corrected bitmap
     public static Bitmap getBitmap(){
-        //return finalFile;
-        return rotatedBitmap;
+        return finalBitmap;
     }
 
+
+    //When the Camera Activity ends, update the tempBitmap and finalBitmap and switch to the image display fragment
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == 101) {
-            bitmap =  BitmapFactory.decodeFile("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
-            rotateBitmap(bitmap);
-
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager
-                    .beginTransaction();
-            Fragment homeImageDisplayFragment = new HomeImageDisplayFragment();
-            fragmentTransaction.replace(R.id.fragmentContainerView, homeImageDisplayFragment);
-            fragmentTransaction.addToBackStack(null);
-            fragmentTransaction.commit();
+            tempBitmap =  BitmapFactory.decodeFile("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
+            rotateBitmap(tempBitmap);
+            fragmentSwap(2);
         }
     }
 
+    //Creates a new bitmap, finalBitmap, with corrected orientation
     private void rotateBitmap(Bitmap bitmap){
         ExifInterface exifInterface = null;
         try{
@@ -215,20 +197,17 @@ public class MainScreenActivity extends AppCompatActivity {
         int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
         Matrix matrix = new Matrix();
         matrix.setRotate(90);
-        rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+        finalBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
-    public void updateSubmission(){
-        submissionAccepted = 100;
-    }
-
-
+    //Creates and runs Custom Object Detector image processor from ML Kit
     public void createCustomObjectDetectionImageProcessor(){
         Log.i("LOGGING: ", "Using Custom Object Detector Processor");
         LocalModel localModel =
                 new LocalModel.Builder()
                         .setAssetFilePath("custom_models/object_labeler.tflite")
                         .build();
+        //Allow detection of multiple objects, enables classifications, allows 10 labels
         CustomObjectDetectorOptions customObjectDetectorOptions =
                 new CustomObjectDetectorOptions.Builder(localModel)
                       .setDetectorMode(CustomObjectDetectorOptions.SINGLE_IMAGE_MODE)
@@ -240,6 +219,7 @@ public class MainScreenActivity extends AppCompatActivity {
         RunCustomObjectDetection();
     }
 
+    //Creates and runs Labeler image processor from ML Kit
     public void createLabelerImageProcessor(){
         Log.i("LOGGING: ", "Using Custom Image label Detector Processor");
         ImageLabelerOptions imageLabelerOptions = new ImageLabelerOptions.Builder().build();
@@ -247,16 +227,12 @@ public class MainScreenActivity extends AppCompatActivity {
         RunLabelerDetection();
     }
 
+    //If run the Object Detection processor on the finalBitmap, then call method to create and run Labeler processor
     public void RunCustomObjectDetection(){
-        Log.i("LOGGING: ", "Try reload and detect image");
+        InputImage image = InputImage.fromBitmap(finalBitmap, 0);
         if(objectDetector != null){
-            objectDetector.process(rotatedBitmap, 0)
-                    .addOnCompleteListener(new OnCompleteListener<List<DetectedObject>>() {
-                        @Override
-                        public void onComplete(@NonNull Task<List<DetectedObject>> task) {
-                                createLabelerImageProcessor();
-                        }
-                    })
+            objectDetector.process(image)
+                    //If process is successful, compare the objects to the prompt. If the prompt is found, update the submissionAccepted variable
                 .addOnSuccessListener(new OnSuccessListener<List<DetectedObject>>() {
                   @Override
                   public void onSuccess(List<DetectedObject> detectedObjects) {
@@ -264,51 +240,37 @@ public class MainScreenActivity extends AppCompatActivity {
                           for (DetectedObject detectedObject : detectedObjects) {
                               for (DetectedObject.Label label : detectedObject.getLabels()) {
                                   String text = label.getText().toLowerCase(Locale.ROOT);
-                                  //int index = label.getIndex();
-                                  //float confidence = label.getConfidence();
-                                  Log.i("OBJECT STRING", text);
+                                  //int index = label.getIndex(); //not needed currently
+                                  //float confidence = label.getConfidence(); //not needed currently
+                                  Log.i("OBJECT STRING", text); //can delete later
                                   if(text.contains(prompt.toLowerCase(Locale.ROOT))){
-                                      Log.i("FOUND!!!", "IN OD");
-                                      updateSubmission();
+                                      Log.i("FOUND!!!", "IN OD"); //can delete later
+                                      submissionAccepted = 100;
                                   }
                               }}
                       }else{
                           Log.i("LOGGING: ", "NO OBJECTS FOUND");
                       }
                   }
-                });
+                })
+                    //When the process completes, create and call the Labeler processor
+                    .addOnCompleteListener(new OnCompleteListener<List<DetectedObject>>() {
+                        @Override
+                        public void onComplete(@NonNull Task<List<DetectedObject>> task) {
+                            createLabelerImageProcessor();
+                        }
+                    });
         } else {
             Log.i("LOGGING: ", "Null imageProcessor, please check adb logs for imageProcessor creation error");
         }
     }
 
+    //Runs Labeler processor on finalBitmap, if the prompt is found, update submissionAccepted. Update the finalFile and swap to appropriate fragment (TCC or TNI)
     public void RunLabelerDetection(){
-        Log.i("LOGGING: ", "Try reload and detect image2");
+        InputImage image = InputImage.fromBitmap(finalBitmap, 0);
         if(imagelabeler != null){
-            imagelabeler.process(rotatedBitmap, 0)
-                    .addOnCompleteListener(new OnCompleteListener<List<ImageLabel>>() {
-                        @Override
-                        public void onComplete(@NonNull Task<List<ImageLabel>> task) {
-                            if(submissionAccepted == 100){
-                                FragmentManager fragmentManager = getSupportFragmentManager();
-                                FragmentTransaction fragmentTransaction = fragmentManager
-                                        .beginTransaction();
-                                Fragment homeAnalysisTCCFragment = new HomeAnalysisTCCFragment();
-                                fragmentTransaction.replace(R.id.fragmentContainerView, homeAnalysisTCCFragment);
-                                fragmentTransaction.addToBackStack(null);
-                                fragmentTransaction.commit();
-                            }
-                            else{
-                                FragmentManager fragmentManager = getSupportFragmentManager();
-                                FragmentTransaction fragmentTransaction = fragmentManager
-                                        .beginTransaction();
-                                Fragment homeAnalysisTNIFragment = new HomeAnalysisTNIFragment();
-                                fragmentTransaction.replace(R.id.fragmentContainerView, homeAnalysisTNIFragment);
-                                fragmentTransaction.addToBackStack(null);
-                                fragmentTransaction.commit();
-                            }
-                        }
-                    })
+            imagelabeler.process(image)
+                    //If the process is successful, compare the objects to the prompt. If the prompt is found, update the submissionAccepted variable.
                     .addOnSuccessListener(new OnSuccessListener<List<ImageLabel>>() {
                         @Override
                         public void onSuccess(List<ImageLabel> labels) {
@@ -316,80 +278,82 @@ public class MainScreenActivity extends AppCompatActivity {
                                 String text = label.getText().toLowerCase(Locale.ROOT);
                                 //float confidence = label.getConfidence();
                                 //int index = label.getIndex();
-                                Log.i("LOGGING: ", "FROM LABEL = " + text);
+                                Log.i("LOGGING: ", "FROM LABEL = " + text); // can be deleted later
                                 if(text.contains(prompt.toLowerCase(Locale.ROOT))){
-                                    Log.i("FOUND!!!", "IN LABELER");
-                                    //submissionAccepted = 100;
-                                    updateSubmission();
+                                    Log.i("FOUND!!!", "IN LABELER"); //can be deleted later
+                                    submissionAccepted = 100;
                                 }
                             }
                         }
                     })
-                    .addOnFailureListener(new OnFailureListener() {
+                    //After the image process is complete, if the submission was successful, update the finalFile with the bitmap and swap to the TCC fragment. Otherwise swap to TNI fragment.
+                    .addOnCompleteListener(new OnCompleteListener<List<ImageLabel>>() {
                         @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.i("LOGGING: ", "NO OBJECTS FOUND");
+                        public void onComplete(@NonNull Task<List<ImageLabel>> task) {
+                            if(submissionAccepted == 100){
+                                finalFile = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
+                                finalFile = bitmapToFile(getContext(), finalBitmap);
+                                fragmentSwap(3);
+                            }
+                            else{
+                                fragmentSwap(4);
+                            }
                         }
                     });
 
         } else {
             Log.i("LOGGING: ", "Null imageProcessor, please check adb logs for imageProcessor creation error");
         }
-        Log.i("ABOUT TO CHECK", " SUB");
     }
 
-    public void submitToAPI(){
-//        finalFile = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
-//        finalFile = bitmapToFile(getContext(), rotatedBitmap);
+    //Calls image processing functions to analyze image for appearance of prompt object
+    public void analyzeImage(){
+        //submissionAccepted variable is rest before analyzing the image
         submissionAccepted = 0;
         createCustomObjectDetectionImageProcessor();
-        //RunCustomObjectDetection();
-       // createLabelerImageProcessor();
-        //RunLabelerDetection();
     }
-    public void removeFragment(){
+
+    //Launches the custom CameraActivity via intent
+    public void launchCamera(){
         Intent intent = new Intent(getContext(), CameraActivity.class);
         startActivityForResult(intent, 101);
+    }
 
-//        Fragment oldFragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainerView);
-//        if (oldFragment != null) {
-//            getSupportFragmentManager().beginTransaction()
-//                    .remove(oldFragment).commit();
-//        }
-
-
-        ////THIS CHUNK WORKS, IT REPLACES THE FRAGMENT
-//        FragmentManager fragmentManager = getSupportFragmentManager();
-//        FragmentTransaction fragmentTransaction = fragmentManager
-//                .beginTransaction();
-//        HomeImageDisplayFragment homeImageFragment = new HomeImageDisplayFragment();
-//        fragmentTransaction.replace(R.id.fragmentContainerView, homeImageFragment);
-//        //provide the fragment ID of your first fragment which you have given in
-//        //fragment_layout_example.xml file in place of first argument
-//        fragmentTransaction.addToBackStack(null);
-//        fragmentTransaction.commit();
-//
-
-
-
-//        FragmentManager fragmentManager = getSupportFragmentManager();
-//        FragmentTransaction fragmentTransaction = fragmentManager
-//                .beginTransaction();
-//        Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragmentContainerView));
-//        //fragmentTransaction.remove(homePromptFragment).commit();
-//        if(current != null){
-//            Toast.makeText(getContext(), "Found Fragment", Toast.LENGTH_SHORT).show();
-//            getSupportFragmentManager().beginTransaction().remove(current).commit();
-//        }
-//        else{
-//            Toast.makeText(getContext(), "No Fragment", Toast.LENGTH_SHORT).show();
-//
-//        }
-
-        //provide the fragment ID of your first fragment which you have given in
-        //fragment_layout_example.xml file in place of first argument
-        //fragmentTransaction.addToBackStack(null);
-        //fragmentTransaction.commit();
+    //Switches the lower fragment on the MainScreenActivity based on code
+    public void fragmentSwap(int code){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager
+                .beginTransaction();
+        homeHeaderFragment = new HomeHeaderFragment();
+        switch(code){
+            case 1:{
+                homePromptFragment = new HomePromptFragment();
+                fragmentTransaction.replace(R.id.fragmentContainerView, homePromptFragment);
+                break;
+            }
+            case 2:{
+                homeImageDisplayFragment = new HomeImageDisplayFragment();
+                fragmentTransaction.replace(R.id.fragmentContainerView, homeImageDisplayFragment);
+                break;
+            }
+            case 3:{
+                homeAnalysisTCCFragment = new HomeAnalysisTCCFragment();
+                fragmentTransaction.replace(R.id.fragmentContainerView, homeAnalysisTCCFragment);
+                break;
+            }
+            case 4:{
+                homeAnalysisTNIFragment = new HomeAnalysisTNIFragment();
+                fragmentTransaction.replace(R.id.fragmentContainerView, homeAnalysisTNIFragment);
+                break;
+            }
+            case 5:{
+                homeTargetSpyedFragment = new HomeTargetSpyedFragment();
+                fragmentTransaction.replace(R.id.fragmentContainerView, homeTargetSpyedFragment);
+                break;
+            }
+        }
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
 
     }
 }
