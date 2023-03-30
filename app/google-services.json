@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1020924938375",
+    "project_id": "operation-ispy",
+    "storage_bucket": "operation-ispy.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020924938375:android:b8620c1ccb468673691022",
+        "android_client_info": {
+          "package_name": "edu.floridapoly.sse.operationispy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1020924938375-prf9v9srds6nco3npdeqe3d3t0i0civc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "edu.floridapoly.sse.operationispy",
+            "certificate_hash": "78a77366c9b63f11154660d80f2f5faf851f47ce"
+          }
+        },
+        {
+          "client_id": "1020924938375-h1l8t7c30srhq4jc0s360c9l04v51c6i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWtSgUmOC6hjh4pvixdjFKX9umNwY75Uw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1020924938375-b4l6cp7u07ja8snh5tiaa66r12qb8uae.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

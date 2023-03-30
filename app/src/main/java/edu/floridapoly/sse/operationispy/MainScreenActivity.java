@@ -37,6 +37,11 @@ import com.google.android.gms.tasks.OnSuccessListener;
 //import com.google.cloud.vision.v1.ImageAnnotatorClient;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.mlkit.common.model.LocalModel;
 import com.google.mlkit.vision.label.ImageLabel;
 import com.google.mlkit.vision.label.ImageLabeler;
@@ -55,6 +60,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 //import io.grpc.netty.shaded.io.netty.util.internal.SystemPropertyUtil;
 
@@ -79,13 +85,54 @@ public class MainScreenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_screen);
-        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         context = getApplicationContext();
 
-        if(ContextCompat.checkSelfPermission(MainScreenActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+        if (ContextCompat.checkSelfPermission(MainScreenActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainScreenActivity.this, new String[]{
                     Manifest.permission.CAMERA}, 101);
         }
+
+        //initialize firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        DocumentReference docRef = db.collection("Prompts").document("1");
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        Log.d("YES", "DocumentSnapshot data: " + document.getData());
+                        prompt = document.getData().get("name").toString();
+                        //prompt = document.getData().get("name");
+                        Log.d("The prompt is: ", prompt);
+                    } else {
+                        Log.d("WHERE", "No such document");
+                    }
+                } else {
+                    Log.d("NO", "get failed with ", task.getException());
+                }
+            }
+        });
+
+        //listener snapshot
+        final DocumentReference docRefDaily = db.collection("DailyPrompt").document("DateAndPrompt");
+        docRefDaily.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(DocumentSnapshot snapshot, FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w("NO", "Listen failed.", e);
+                    return;
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    Log.d("YES", "Current data: " + snapshot.getData());
+                } else {
+                    Log.d("NULL", "Current data: null");
+                }
+            }
+        });
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager
