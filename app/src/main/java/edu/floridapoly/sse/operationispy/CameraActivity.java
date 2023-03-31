@@ -62,7 +62,8 @@ public class CameraActivity extends AppCompatActivity {
         captureImageButton = findViewById(R.id.imageCaptureButton);
 
         context = this;
-        //If all permissions are granted, start the camera. Otherwise request permissions defined in REQUIRED_PERMISSIONS array
+        //If all permissions are granted,
+        // the camera. Otherwise request permissions defined in REQUIRED_PERMISSIONS array
         if(allPermissionsGranted()){
             startCamera(); //start camera if permission has been granted by user
         } else{
