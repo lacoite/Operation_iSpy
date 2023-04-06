@@ -654,7 +654,7 @@ public class MainScreenActivity extends AppCompatActivity {
             }
         }
         fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
+        fragmentTransaction.commitAllowingStateLoss();
     }
 
     //Updates the Assets Field for user in User collection
