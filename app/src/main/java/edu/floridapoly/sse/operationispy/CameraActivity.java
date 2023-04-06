@@ -1,5 +1,6 @@
 package edu.floridapoly.sse.operationispy;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
@@ -18,50 +19,53 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Surface;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class CameraActivity extends AppCompatActivity {
-    //TODO: Reimplement permissions to have a custom message "Operation iSpy will need to access your camera to run"
-    //TODO: Revise action completed if the permissions are not granted (currently closes app, instead do not launch camera activity)
-    //TODO: Implement deletion of currentImage.jpg before taking new image to prevent error, also implement deletion at midnight (may be in different activity)
-    private Executor executor = Executors.newSingleThreadExecutor();
+    //Declare request code permisisons variable
     private int REQUEST_CODE_PERMISSIONS = 1001;
+    //Declare permissions necessary for camera
     private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA"};
 
+    //Declare PreviewView, button, and ImageCapture
     PreviewView mPreviewView;
     Button captureImageButton;
     ImageCapture imageCapture;
-    //Temporary imageView for testing image file saving and retrieving
 
+    //Declare file and context
     File file;
     Context context;
 
-
-
+    //When the activity is launched, lock the orientation in portrait, request permission if they have not been granted, then start camera
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        //When back is pressed, close the activity and return the code for no image captured
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                Intent resultIntent = new Intent();
+                setResult(202, resultIntent);
+                finish();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
+
         mPreviewView = findViewById(R.id.previewView);
         captureImageButton = findViewById(R.id.imageCaptureButton);
-
         context = this;
+
         //If all permissions are granted, start the camera. Otherwise request permissions defined in REQUIRED_PERMISSIONS array
         if(allPermissionsGranted()){
             startCamera(); //start camera if permission has been granted by user
@@ -70,6 +74,7 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
+    //Starts camera
     private void startCamera() {
         final ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(MainScreenActivity.getContext());
 
@@ -105,21 +110,21 @@ public class CameraActivity extends AppCompatActivity {
 
         Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, preview, imageAnalysis, imageCapture);
 
-        //When the capture button is clicked, capture and image. If a capture is successful, set the imageView to the image
+        //When the capture button is clicked, call capture image function
         captureImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Capture image, set the temporary imageView to the image if successful, otherwise print error StackTrace
                 capturePic();
             }
         });
     }
 
-    //Capture and save the an image to the cache directory under the name "currentImage.jpg"
+    //Capture and save the image to the cache directory under the name "currentImage.jpg"
     private void capturePic(){
+        //Initialize file with cache file path
         file = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
 
-        //Capture image and save to the cache directory, if failed, print exception StackTrace
+        //Capture image and save to the cache directory close activity with code for image captured, if failed, print exception StackTrace
         imageCapture.takePicture(new ImageCapture.OutputFileOptions.Builder(file).build(), ContextCompat.getMainExecutor(MainScreenActivity.getContext()), new ImageCapture.OnImageSavedCallback(){
             @Override
             public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
@@ -144,8 +149,7 @@ public class CameraActivity extends AppCompatActivity {
         return true;
     }
 
-    //If user accepts permissions, launch camera
-    //This will be changed later, since permission will be requested from the home fragment before the camera is launched
+    //If user accepts permissions, launch camera, otherwise, ask user to update device settings and close camera. Camera will not open until the permisison is granted
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -153,7 +157,7 @@ public class CameraActivity extends AppCompatActivity {
             if (allPermissionsGranted()) {
                 startCamera();
             } else {
-                Toast.makeText(this, "Permissions not granted by the user.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please Allow Camera Access In Your Device Settings", Toast.LENGTH_SHORT).show();
                 this.finish();
             }
         }

@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".RanksFragment"
+    android:paddingTop="20dp"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/closeHelpButton"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:scaleY="0.50"
+            android:scaleX="0.50"
+            android:src="@mipmap/back_icon_foreground"
+            android:background="@android:color/transparent"
+            app:tint="@color/foreground_green" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="35sp"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/square"
+            android:text="Agent Ranks"/>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_gravity="top"
+        android:background="@color/foreground_green" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:gravity="center"
+            android:fontFamily="@font/square"
+            android:lines="1"
+            android:text="Your Rank: "
+            />
+
+        <TextView
+            android:id="@+id/yourRank"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:fontFamily="@font/square"
+            android:lines="1"
+
+            android:text="-"
+            />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_gravity="top"
+        android:background="@color/foreground_green" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="25sp"
+        android:gravity="center"
+        android:layout_gravity="top"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:fontFamily="@font/square"
+        android:lines="1"
+        android:text="Top 5 Agents"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="20sp"
+            android:layout_gravity="top"
+            android:fontFamily="@font/square"
+            android:lines="1"
+            android:text="Rank"
+            />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:textSize="20sp"
+            android:layout_gravity="top"
+            android:fontFamily="@font/square"
+            android:lines="1"
+            android:text=" Agent"
+            />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.5"
+            android:gravity="center"
+            android:textSize="20sp"
+            android:layout_gravity="top"
+            android:fontFamily="@font/square"
+            android:lines="1"
+            android:text="Assets"
+            />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:rowCount="5">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:layout_marginBottom="10dp"
+                android:text="1"
+                />
+
+            <TextView
+                android:id="@+id/rankName1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="3"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:paddingLeft="5dp"
+                android:layout_marginBottom="10dp"
+                android:text=" -"
+                />
+
+            <TextView
+                android:id="@+id/asset1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1.5"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:layout_marginBottom="10dp"
+                android:text="-"
+                />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:layout_marginBottom="10dp"
+                android:text="2"
+                />
+
+            <TextView
+                android:id="@+id/rankName2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="3"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:paddingLeft="5dp"
+                android:layout_marginBottom="10dp"
+                android:text=" -"
+                />
+
+            <TextView
+                android:id="@+id/asset2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1.5"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:layout_marginBottom="10dp"
+                android:text="-"
+                />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:layout_marginBottom="10dp"
+                android:text="3"
+                />
+
+            <TextView
+                android:id="@+id/rankName3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="3"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:paddingLeft="5dp"
+                android:layout_marginBottom="10dp"
+                android:text=" -"
+                />
+
+            <TextView
+                android:id="@+id/asset3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1.5"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:layout_marginBottom="10dp"
+                android:paddingLeft="3dp"
+                android:text="-"
+                />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:layout_marginBottom="10dp"
+                android:text="4"
+                />
+
+            <TextView
+                android:id="@+id/rankName4"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="3"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:paddingLeft="5dp"
+                android:layout_marginBottom="10dp"
+                android:text=" -"
+                />
+
+            <TextView
+                android:id="@+id/asset4"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1.5"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:layout_marginBottom="10dp"
+                android:text="-"
+                />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:layout_marginBottom="10dp"
+                android:text="5"
+                />
+
+            <TextView
+                android:id="@+id/rankName5"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="3"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:paddingLeft="5dp"
+                android:layout_marginBottom="10dp"
+                android:text=" -"
+                />
+
+            <TextView
+                android:id="@+id/asset5"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1.5"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:fontFamily="@font/square"
+                android:layout_marginBottom="10dp"
+                android:text="-"
+                />
+        </GridLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"/>
+
+            <View
+
+                android:layout_width="3dp"
+                android:layout_height="wrap_content"
+                android:background="@color/foreground_green" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:background="@android:color/transparent"/>
+
+            <View
+                android:layout_width="3dp"
+                android:layout_height="wrap_content"
+                android:background="@color/foreground_green" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.5"
+                android:background="@android:color/transparent"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+
+</LinearLayout>

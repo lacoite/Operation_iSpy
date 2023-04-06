@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,104 +8,214 @@
     android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/mainLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginBottom="20dp"
-        >
+        android:layout_height="match_parent"
+        android:filterTouchesWhenObscured="true"
+        android:visibility="visible"
+        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="20dp"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="8"
-                android:textSize="35sp"
-                android:layout_gravity="bottom"
-                android:fontFamily="@font/square"
-                android:lines="1"
-                android:text="Agent Lasak"/>
-
-            <Button
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:padding="0dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/square"
-                android:text="S"
-                />
-
-            <Button
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:padding="0dp"
-                android:fontFamily="@font/square"
-                android:layout_weight="1"
-                android:text="\?"
-                />
-
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="40dp"
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp"
             >
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="25sp"
-                android:layout_marginLeft="10dp"
-                android:fontFamily="@font/square"
-                android:text="Assets: "
-                />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:textSize="25sp"
-                android:fontFamily="@font/square"
-                android:text="1,347"
-                />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:paddingTop="20dp"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
-                android:paddingTop="15dp"
-                android:paddingBottom="15dp"
-                android:maxLines="1"
-                android:textSize="20sp"
-                android:fontFamily="@font/square"
-                android:text="Agent Rank"
-                />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_weight="8"
+                    android:fontFamily="@font/square"
+                    android:lines="1"
+                    android:scaleY="1.75"
+                    android:text="Agent Lasak"
+                    android:paddingTop="15dp"
+                    android:paddingBottom="10dp"
+                    android:textSize="21sp" />
+
+                <ImageButton
+                    android:id="@+id/settingsButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:padding="0dp"
+                    android:layout_weight="1.2"
+                    android:layout_gravity="center"
+                    android:background="@android:color/transparent"
+                    android:src="@mipmap/settings_icon_foreground"
+                    app:tint="@color/foreground_green"
+                    android:layout_marginRight="10dp"/>
+
+                <Button
+                    android:id="@+id/helpButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:padding="0dp"
+                    android:scaleY="0.85"
+                    android:textSize="20dp"
+                    android:fontFamily="@font/square"
+                    android:layout_gravity="center"
+                    android:background="@drawable/help_outline"
+                    android:layout_weight="1.2"
+                    android:text="\?"
+                    />
+
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="25sp"
+                        android:layout_marginLeft="10dp"
+                        android:fontFamily="@font/square"
+                        android:text="Assets: "
+                        />
+
+                    <TextView
+                        android:id="@+id/totalAssetsTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:textSize="20sp"
+                        android:scaleY="1.25"
+                        android:paddingBottom="2dp"
+                        android:fontFamily="@font/square"
+                        />
+
+                    <Button
+                        android:id="@+id/ranksButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:paddingTop="20dp"
+                        android:paddingBottom="15dp"
+                        android:maxLines="1"
+                        android:textSize="20sp"
+                        android:textColor="@color/dark_blue_green"
+                        android:background="@color/foreground_green"
+                        android:fontFamily="@font/square"
+                        android:text="Agent Rank"
+                        />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="3dp"
+                    android:layout_gravity="top"
+                    android:background="@color/foreground_green" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="3dp"
+                    android:layout_gravity="bottom"
+                    android:background="@color/foreground_green" />
+            </FrameLayout>
 
         </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/fragmentContainerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/loadingText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/square"
+                android:textSize="40sp"
+                android:gravity="center"
+                android:text="LOADING..."/>
+        </FrameLayout>
 
     </LinearLayout>
 
-<!--    <androidx.fragment.app.FragmentContainerView-->
-<!--        android:id="@+id/fragmentContainerView2"-->
-<!--        android:name="edu.floridapoly.sse.operationispy.HomeHeaderFragment"-->
+<!--    <LinearLayout-->
+<!--        android:id="@+id/appNameScreen"-->
+<!--        android:background="@color/dark_blue_green"-->
+<!--        android:orientation="vertical"-->
+<!--        android:paddingTop="250dp"-->
 <!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"/>-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:visibility="invisible">-->
+<!--        <TextView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:textSize="40sp"-->
+<!--            android:fontFamily="@font/square"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:textStyle="italic"-->
+<!--            android:gravity="center"-->
+<!--            android:layout_marginBottom="50dp"-->
+<!--            android:text="Operation\n\t\t     iSpy"/>-->
+
+<!--        <ImageView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:scaleX="2"-->
+<!--            android:scaleY="2"-->
+<!--            android:src="@mipmap/app_logo_foreground"/>-->
+
+<!--    </LinearLayout>-->
+
+    <LinearLayout
+        android:id="@+id/connectionError"
+        android:background="@color/dark_blue_green"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="20sp"
+            android:fontFamily="@font/square"
+            android:gravity="center"
+            android:text="No Internet Connection!"/>
+
+    </LinearLayout>
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/fragmentContainerView"
-        android:name="edu.floridapoly.sse.operationispy.HomePromptFragment"
+        android:id="@+id/ranksFragmentContainerView"
+        android:name="edu.floridapoly.sse.operationispy.RanksFragment"
+        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/helpFragmentContainerView"
+        android:name="edu.floridapoly.sse.operationispy.HelpFragment"
+        android:visibility="invisible"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/settingsFragmentContainerView"
+        android:name="edu.floridapoly.sse.operationispy.SettingsFragment"
+        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-</LinearLayout>
+</FrameLayout>

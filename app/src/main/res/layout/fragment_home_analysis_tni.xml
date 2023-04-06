@@ -46,6 +46,18 @@
         android:textStyle="italic"
         android:text="IDENTIFIED"/>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:gravity="bottom|left"
+        android:layout_gravity="center"
+        android:textSize="25sp"
+        android:fontFamily="@font/square"
+        android:layout_marginBottom="40dp"
+        android:text="Please ensure that your capture does not contain multiple non-target objects\n\n"/>
+
+
 
 
 </LinearLayout>

@@ -53,6 +53,7 @@
         android:text="ASSETS ACQUIRED: " />
 
     <TextView
+        android:id="@+id/assetsTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -62,9 +63,9 @@
         android:paddingLeft="40dp"
         android:paddingRight="40dp"
         android:textStyle="italic"
+        android:background="@drawable/button_outline"
         android:fontFamily="@font/square"
-        android:layout_marginBottom="40dp"
-        android:text="2,317"/>
+        android:layout_marginBottom="40dp"/>
 
 
 </LinearLayout>

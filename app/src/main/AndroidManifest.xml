@@ -4,8 +4,11 @@
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
     <queries>
+
         <!-- Camera -->
         <intent>
             <action android:name="android.media.action.IMAGE_CAPTURE" />
@@ -15,18 +18,19 @@
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/app_logo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/app_logo_round"
         android:supportsRtl="true"
         android:theme="@style/TestTheme.OperationISpy"
-        android:enableOnBackInvokedCallback="true"
         tools:targetApi="31">
-        <!--added enableOnBackInvokedCallback for error-->
+        <!-- added enableOnBackInvokedCallback for error -->
         <activity
             android:name=".CameraActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.OperationISpy.NoActionBarCamera">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="" />

@@ -2,24 +2,37 @@
     <!-- Base application theme. -->
     <style name="Theme.OperationISpy" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryDark">@color/purple_700</item>
+        <item name="colorPrimary">@color/dark_blue_green</item>
+        <item name="colorPrimaryDark">@color/dark_blue_green</item>
         <item name="colorAccent">@color/teal_200</item>
         <!-- Customize your theme here. -->
     </style>
     <style name="TestTheme.OperationISpy" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryDark">@color/purple_700</item>
+        <item name="colorPrimary">@color/dark_blue_green</item>
+        <item name="colorPrimaryDark">@color/dark_blue_green</item>
         <item name="colorAccent">@color/teal_200</item>
-        <item name="colorBackgroundFloating">@color/dark_blue_green</item>
         <item name="android:fontFamily">@font/square</item>
+        <item name="android:windowAnimationStyle">@null</item>
 
         <!-- Customize your theme here. -->
     </style>
     <style name="Theme.OperationISpy.NoActionBar">
+        <item name="android:windowAnimationStyle">@null</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:navigationBarColor">@color/dark_blue_green</item>
+        <item name="android:background">@color/dark_blue_green</item>
+        <item name="android:textColor">@color/foreground_green</item>
+        <item name="android:colorButtonNormal">@color/foreground_green</item>
+    </style>
+    <style name="Theme.OperationISpy.NoActionBarCamera">
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:navigationBarColor">@color/dark_blue_green</item>
+        <item name="android:textColor">@color/foreground_green</item>
+        <item name="android:colorButtonNormal">@color/foreground_green</item>
     </style>
     <style name="Theme.OperationISpy.AppBarOverlay"
         parent="ThemeOverlay.AppCompat.Dark.ActionBar" />

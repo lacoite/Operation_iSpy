@@ -19,6 +19,7 @@
         android:text="I SPYED A"/>
 
     <TextView
+        android:id="@+id/promptTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="50dp"
@@ -29,29 +30,29 @@
         android:text="Pencil"/>
 
     <TextView
+        android:id="@+id/timeTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="50dp"
         android:gravity="center"
         android:layout_marginBottom="50dp"
-        android:fontFamily="@font/square"
-        android:text="IN 3H 28M"/>
+        android:fontFamily="@font/square" />
 
 
     <Button
-        android:id="@+id/analyzeCaptureButton"
+        android:id="@+id/copyButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:textSize="30sp"
+        android:textSize="25sp"
         android:paddingTop="20dp"
         android:paddingBottom="20dp"
         android:layout_marginTop="30dp"
         android:layout_marginBottom="50dp"
         android:fontFamily="@font/square"
+        android:textColor="@color/dark_blue_green"
         android:lines="1"
-        android:text="Tweet Capture"
-        android:onClick="tweetCaptureClicked"/>
+        android:text="Copy Capture Stats" />
 
 
 </LinearLayout>
