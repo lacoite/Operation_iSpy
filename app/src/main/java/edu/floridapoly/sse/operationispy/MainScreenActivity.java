@@ -27,7 +27,6 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -82,11 +81,6 @@ public class MainScreenActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-       /* if(FirebaseAuth.getInstance().getCurrentUser()==null)
-        {
-            startActivity(new Intent(this,sing_in.class));
-        }
-*/
         setContentView(R.layout.activity_main_screen);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         context = getApplicationContext();
@@ -98,8 +92,6 @@ public class MainScreenActivity extends AppCompatActivity {
 
         //Initialize Firestore
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-
 
         DocumentReference docRefForPrompt = db.collection("Prompts").document("1");
         docRefForPrompt.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -120,7 +112,7 @@ public class MainScreenActivity extends AppCompatActivity {
                 }
             }
         });
-        
+
         //listener snapshot
         final DocumentReference docRefDaily = db.collection("DailyPrompt").document("DateAndPrompt");
         docRefDaily.addSnapshotListener(new EventListener<DocumentSnapshot>() {
@@ -185,8 +177,6 @@ public class MainScreenActivity extends AppCompatActivity {
 
     //When the Camera Activity ends, update the tempBitmap and finalBitmap and switch to the image display fragment
     @Override
-
-
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == 101) {
