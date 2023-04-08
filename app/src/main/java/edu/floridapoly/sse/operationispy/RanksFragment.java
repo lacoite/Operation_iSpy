@@ -110,7 +110,7 @@ public class RanksFragment extends Fragment {
                                         assets.add(formattedAssets);
                                     }
                                     //When the user's name is found, mark the place
-                                    if(userName.get(i).equals("Tokyo")){
+                                    if(String.valueOf(document.getString("Username")).equals("MOREPLEASE")){
                                         place = i+1;
                                     }
                                     i++;

@@ -3,6 +3,7 @@ package edu.floridapoly.sse.operationispy;
 import static java.lang.Math.round;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -120,6 +121,22 @@ public class MainScreenActivity extends AppCompatActivity {
     static LinearLayout mainLayout;
     LinearLayout connectionLayout;
 
+    //Intent and service for notifications to run in the background
+    Intent mNotificationServiceIntent;
+    private NotificationService mNotificationService;
+
+    //Begin onSnapshot listener in background when the app is closed to monitor for prompt releases
+    @Override
+    protected void onDestroy() {
+        //stopService(mNotificationServiceIntent)
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction("restartservice");
+        broadcastIntent.setClass(this, Restarter.class);
+        this.sendBroadcast(broadcastIntent);
+        super.onDestroy();
+    }
+
+    //TODO: update to reset User's notify box to 0 when they enter the app (assuming we utilize individual boxes)
     //On resume (from CameraActivity or app closing), run start function if the current fragment is not the HomeImageDisplayFragment, delay to allow fragment to update
     @Override
     protected void onResume(){
@@ -146,6 +163,13 @@ public class MainScreenActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main_screen);
         //Lock screen rotation to portrait
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        //Begins background notification service if it is not running
+        mNotificationService = new NotificationService();
+        mNotificationServiceIntent = new Intent(this, mNotificationService.getClass());
+        if(!isNotificationSerivceRunnning(mNotificationService.getClass())){
+            startService(mNotificationServiceIntent);
+        }
 
         context = getApplicationContext();
 
@@ -225,6 +249,19 @@ public class MainScreenActivity extends AppCompatActivity {
         mainLayout.setVisibility(View.VISIBLE);
     }
 
+    //Detects if the notification service is running
+    private boolean isNotificationSerivceRunnning(Class<?> serviceClass){
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for(ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
+            if(serviceClass.getName().equals(service.service.getClassName())){
+                Log.i("Service Status: ", "Running");
+                return true;
+            }
+        }
+        Log.i("Service Status: ", "Not Running");
+        return false;
+    }
+
     //Function called when the main activity resumes (on open as well due to activity lifecycle)
     //Pulls prompt, and whether the user has made a successful submission
     //TODO: Update the document paths to user variables for the user's ID and prompt ID
@@ -253,7 +290,7 @@ public class MainScreenActivity extends AppCompatActivity {
             //Access User collection, specified ID path
             //Get whether or not the user has successfully submitted an image. Load PromptFragment if not, otherwise load TargetSpyedFragement
             //Save amount of assets user has to variable
-            DocumentReference docRefForCompletedAndAssets = db.collection("User").document("59jyiNCYQAcf6a4TGvRF");
+            DocumentReference docRefForCompletedAndAssets = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
             docRefForCompletedAndAssets.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -423,7 +460,7 @@ public class MainScreenActivity extends AppCompatActivity {
             @Override
             public void run() {
                 //Access User collection, user ID document to pull the time that a successful capture was submitted
-                DocumentReference docRefForSubmissionTime = db.collection("User").document("59jyiNCYQAcf6a4TGvRF");
+                DocumentReference docRefForSubmissionTime = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
                 docRefForSubmissionTime.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -660,7 +697,7 @@ public class MainScreenActivity extends AppCompatActivity {
     //Updates the Assets Field for user in User collection
     //TODO: use user ID from variable
     public static void updateAssetsInDb(){
-        DocumentReference docRef = db.collection("User").document("59jyiNCYQAcf6a4TGvRF");
+        DocumentReference docRef = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
         // Update the Assets field to increment by the number of assets earned for submission
         docRef.update("Assets", FieldValue.increment(calculatedAssets));
     }
@@ -668,7 +705,7 @@ public class MainScreenActivity extends AppCompatActivity {
     //Updates the TimeSubmitted field for the user in the User collection
     //TODO: use user ID from variable
     public void saveTimeStamp() {
-        DocumentReference docRef = db.collection("User").document("59jyiNCYQAcf6a4TGvRF");
+        DocumentReference docRef = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
         // Update the timestamp field with the value from the server
         docRef.update("TimeSubmitted", FieldValue.serverTimestamp());
     }
@@ -676,7 +713,7 @@ public class MainScreenActivity extends AppCompatActivity {
     //Updates the Submitted field for the user in the user table
     //TODO: use user ID from variable
     public void updateDbSubmitted() {
-        DocumentReference docRef = db.collection("User").document("59jyiNCYQAcf6a4TGvRF");
+        DocumentReference docRef = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
         // Update the Submitted field to be true
         docRef.update("Submitted", "true");
     }
@@ -706,7 +743,7 @@ public class MainScreenActivity extends AppCompatActivity {
                     }
                 });
                 //Access User collection, user ID document to pull the time that user submitted valid capture
-                DocumentReference docRefForSubmissionTime = db.collection("User").document("59jyiNCYQAcf6a4TGvRF");
+                DocumentReference docRefForSubmissionTime = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
                 docRefForSubmissionTime.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
