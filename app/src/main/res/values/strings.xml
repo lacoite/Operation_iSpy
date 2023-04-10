@@ -26,5 +26,14 @@
     </string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
     <string name="title_activity_settings">SettingsActivity</string>
+    <string name="desc_google_icon">Google Logo</string>
+    <string name="signed_in_fmt">Signed in as: %s</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="signed_out">Signed out</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="title_text">Sign In With Google</string>
+
+    <string name="server_client_id">1020924938375-iltv11qnp14krbrbtkbfmgcsvq4nfdia.apps.googleusercontent.com</string>
+
 
 </resources>

@@ -9,6 +9,9 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
@@ -28,6 +31,7 @@ public class NotificationService extends Service {
     public int counter = 0;
     static FirebaseFirestore db;
     Handler handler;
+    String userID;
 
     @Override
     public void onCreate() {
@@ -48,10 +52,14 @@ public class NotificationService extends Service {
         assert notificationManager != null;
         notificationManager.createNotificationChannel(chan);
 
+        Bitmap icon = BitmapFactory.decodeResource(getResources(),R.mipmap.app_logo);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
         Notification notification = notificationBuilder.setOngoing(true)
                 .setContentTitle("Operation iSpy is Running in the Background to Notify You When A Prompt is Released ")
                 .setPriority(NotificationManager.IMPORTANCE_NONE)
+                .setSilent(true)
+                .setLargeIcon(icon)
+//                .setSmallIcon(R.mipmap.app_logo_round)
                 .setVibrate(null)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .build();
@@ -63,12 +71,14 @@ public class NotificationService extends Service {
     @Override
     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+        SharedPreferences sharedPref = getSharedPreferences("UserData", Context.MODE_PRIVATE);
+        userID = sharedPref.getString("CurrentUserID", "NO_ID");
         handler = new Handler();
         handler.post(new Runnable() {
             @Override
             public void run() {
                 db = FirebaseFirestore.getInstance();
-                final DocumentReference docRef = db.collection("DailyPrompt").document("DateAndPrompt");
+                final DocumentReference docRef = db.collection("User").document(userID);
                 docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
                     @Override
                     public void onEvent(DocumentSnapshot snapshot, FirebaseFirestoreException e) {
@@ -78,13 +88,13 @@ public class NotificationService extends Service {
                         }
                         if (snapshot != null && snapshot.exists()) {
                             Log.d(TAG, "Current data: " + snapshot.getData());
-                            if(String.valueOf(snapshot.get("Prompt")).equals("XYZ")){
+                            if(String.valueOf(snapshot.get("Notified")).equals("1")){
                                 Intent intent = new Intent(getApplicationContext(), MainScreenActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
 
-                                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                                NotificationManager notificationManager2 = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                                 {
                                     NotificationChannel channel = new NotificationChannel("default", "Operation iSpy", NotificationManager.IMPORTANCE_HIGH);
@@ -94,7 +104,7 @@ public class NotificationService extends Service {
                                     channel.enableVibration(true);
                                     channel.setImportance(NotificationManager.IMPORTANCE_HIGH);
                                     channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-                                    notificationManager.createNotificationChannel(channel);
+                                    notificationManager2.createNotificationChannel(channel);
                                 }
 
                                 NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "default")
@@ -105,7 +115,11 @@ public class NotificationService extends Service {
                                         .setContentIntent(pendingIntent)
                                         .setPriority(NotificationCompat.PRIORITY_MAX);
 
-                                notificationManager.notify(3, builder.build());
+                                notificationManager2.notify(3, builder.build());
+
+                                DocumentReference docRef = db.collection("User").document(userID);
+                                // Update the Notified field to be 0
+                                docRef.update("Notified", 0);
 
 
                             } else {

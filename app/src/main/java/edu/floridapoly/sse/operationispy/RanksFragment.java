@@ -1,5 +1,7 @@
 package edu.floridapoly.sse.operationispy;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -40,6 +42,8 @@ public class RanksFragment extends Fragment {
     static List<String> userName;
     static List<String> assets;
 
+    static String userID;
+
     public RanksFragment() {
         // Required empty public constructor
     }
@@ -55,6 +59,10 @@ public class RanksFragment extends Fragment {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_ranks, container, false);
         closeButton = view.findViewById(R.id.closeHelpButton);
+
+        //Pull stored UserID from shared preference
+        SharedPreferences sharedPref = getActivity().getSharedPreferences("UserData", Context.MODE_PRIVATE);
+        userID = sharedPref.getString("CurrentUserID", "X");
 
         //When the graphic close button is clicked, use the closeRanks function in main to make the fragment invisible and make the mainLayout visible
         closeButton.setOnClickListener(new View.OnClickListener() {
@@ -110,7 +118,7 @@ public class RanksFragment extends Fragment {
                                         assets.add(formattedAssets);
                                     }
                                     //When the user's name is found, mark the place
-                                    if(String.valueOf(document.getString("Username")).equals("MOREPLEASE")){
+                                    if(document.getId().equals(userID)){
                                         place = i+1;
                                     }
                                     i++;

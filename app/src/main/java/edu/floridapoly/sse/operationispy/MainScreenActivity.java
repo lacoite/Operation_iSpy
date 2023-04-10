@@ -6,6 +6,7 @@ import android.Manifest;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -104,6 +105,7 @@ public class MainScreenActivity extends AppCompatActivity {
     //Declare changing text views
     TextView loadingText;
     TextView totalAssetsText;
+    TextView usernameText;
 
     //Declare fragments swapped in R.id.fragmentContainerView
     Fragment homePromptFragment;
@@ -121,8 +123,11 @@ public class MainScreenActivity extends AppCompatActivity {
     static LinearLayout mainLayout;
     LinearLayout connectionLayout;
 
+    static String userID;
+    static String userName;
+
     //Intent and service for notifications to run in the background
-    Intent mNotificationServiceIntent;
+    static Intent mNotificationServiceIntent;
     private NotificationService mNotificationService;
 
     //Begin onSnapshot listener in background when the app is closed to monitor for prompt releases
@@ -136,7 +141,6 @@ public class MainScreenActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    //TODO: update to reset User's notify box to 0 when they enter the app (assuming we utilize individual boxes)
     //On resume (from CameraActivity or app closing), run start function if the current fragment is not the HomeImageDisplayFragment, delay to allow fragment to update
     @Override
     protected void onResume(){
@@ -164,6 +168,18 @@ public class MainScreenActivity extends AppCompatActivity {
         //Lock screen rotation to portrait
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        context = getApplicationContext();
+
+        SharedPreferences sharedPref = getSharedPreferences("UserData", Context.MODE_PRIVATE);
+        userID = sharedPref.getString("CurrentUserID", "NO_ID");
+
+        Log.i("HERE: ", userID);
+        if(userID.equals("NO_ID")){
+            Intent signOutIntent = new Intent(getContext(), SignInActivity.class);
+            signOutIntent.putExtra("SignOut", "true");
+            startActivity(signOutIntent);
+        }
+
         //Begins background notification service if it is not running
         mNotificationService = new NotificationService();
         mNotificationServiceIntent = new Intent(this, mNotificationService.getClass());
@@ -171,14 +187,13 @@ public class MainScreenActivity extends AppCompatActivity {
             startService(mNotificationServiceIntent);
         }
 
-        context = getApplicationContext();
-
         //Initialize buttons, views, layouts
         mainLayout = findViewById(R.id.mainLayout);
         connectionLayout = findViewById(R.id.connectionError);
         ranksButton = findViewById(R.id.ranksButton);
         helpButton = findViewById(R.id.helpButton);
         settingsButton = findViewById(R.id.settingsButton);
+        usernameText = findViewById(R.id.usernameTextView);
         totalAssetsText = findViewById(R.id.totalAssetsTextView);
         loadingText = findViewById(R.id.loadingText);
 
@@ -263,22 +278,21 @@ public class MainScreenActivity extends AppCompatActivity {
     }
 
     //Function called when the main activity resumes (on open as well due to activity lifecycle)
-    //Pulls prompt, and whether the user has made a successful submission
-    //TODO: Update the document paths to user variables for the user's ID and prompt ID
+    //Pulls prompt, user data, and whether the user has made a successful submission
     public void start(){
         try{
             //Initialize Firestore (duplicated here to prevent error)
             db = FirebaseFirestore.getInstance();
 
             //Access Prompts Collection, specified Document path for Prompt, saves prompt name to variable
-            DocumentReference docRefForPrompt = db.collection("Prompts").document("1");
+            DocumentReference docRefForPrompt = db.collection("ServerInfo").document("Releases");
             docRefForPrompt.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
-                            prompt = document.getData().get("name").toString();
+                            prompt = document.getData().get("LastPrompt").toString();
                         } else {
                             Log.d("Prompt Pull Failed:", "No such document");
                         }
@@ -289,14 +303,15 @@ public class MainScreenActivity extends AppCompatActivity {
             });
             //Access User collection, specified ID path
             //Get whether or not the user has successfully submitted an image. Load PromptFragment if not, otherwise load TargetSpyedFragement
-            //Save amount of assets user has to variable
-            DocumentReference docRefForCompletedAndAssets = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
+            //Save amount of assets user has to variable, save userUsername, update both in header
+            DocumentReference docRefForCompletedAndAssets = db.collection("User").document(userID);
             docRefForCompletedAndAssets.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
+                            userName = document.getData().get("Username").toString();
                             promptComplete = document.getData().get("Submitted").toString();
                             currentAssets = (long)document.getData().get("Assets");
                             //If the user has not completed the prompt, hide the loading text, update the assets in the header, swap to HomePromptDisplayFragment
@@ -305,6 +320,7 @@ public class MainScreenActivity extends AppCompatActivity {
                                 handler.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
+                                        usernameText.setText("Agent " + userName);
                                         //Format the assets value to have appropriate commas, set the totalAssetsText to the formatted string
                                         DecimalFormat df = new DecimalFormat("#,###");
                                         String formattedAssets = df.format(currentAssets);
@@ -324,6 +340,7 @@ public class MainScreenActivity extends AppCompatActivity {
                                 handler.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
+                                        usernameText.setText("Agent " + userName);
                                         //Format the assets value to have appropriate commas, set the totalAssetsText to the formatted string
                                         DecimalFormat df = new DecimalFormat("#,###");
                                         String formattedAssets = df.format(currentAssets);
@@ -432,7 +449,6 @@ public class MainScreenActivity extends AppCompatActivity {
     }
 
     //Pulls prompt release time and user submission time, function used to prevent variables if app is closed after submission is complete
-    //TODO: Update document path to user variables for the user's ID
     public void recalculateTimes(){
         runOnUiThread(new Runnable() {
             @Override
@@ -460,7 +476,7 @@ public class MainScreenActivity extends AppCompatActivity {
             @Override
             public void run() {
                 //Access User collection, user ID document to pull the time that a successful capture was submitted
-                DocumentReference docRefForSubmissionTime = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
+                DocumentReference docRefForSubmissionTime = db.collection("User").document(userID);
                 docRefForSubmissionTime.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -695,31 +711,43 @@ public class MainScreenActivity extends AppCompatActivity {
     }
 
     //Updates the Assets Field for user in User collection
-    //TODO: use user ID from variable
     public static void updateAssetsInDb(){
-        DocumentReference docRef = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
+        DocumentReference docRef = db.collection("User").document(userID);
         // Update the Assets field to increment by the number of assets earned for submission
         docRef.update("Assets", FieldValue.increment(calculatedAssets));
     }
 
     //Updates the TimeSubmitted field for the user in the User collection
-    //TODO: use user ID from variable
     public void saveTimeStamp() {
-        DocumentReference docRef = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
+        DocumentReference docRef = db.collection("User").document(userID);
         // Update the timestamp field with the value from the server
         docRef.update("TimeSubmitted", FieldValue.serverTimestamp());
     }
 
     //Updates the Submitted field for the user in the user table
-    //TODO: use user ID from variable
     public void updateDbSubmitted() {
-        DocumentReference docRef = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
+        DocumentReference docRef = db.collection("User").document(userID);
         // Update the Submitted field to be true
         docRef.update("Submitted", "true");
     }
 
+    //Updates the Username field for the user in the user table
+    public void updateDbUsername(String newUser) {
+        DocumentReference docRef = db.collection("User").document(userID);
+        // Update the Username field to be the new username
+        docRef.update("Username", newUser);
+        //Update the UI
+        usernameText.setText("Agent " + newUser);
+    }
+
+    //Update user's notified box to prevent user from receiving duplicate notifications
+    public void updateDbNotified() {
+        DocumentReference docRef = db.collection("User").document(userID);
+        // Update the Notified field to be 0
+        docRef.update("Notified", 0);
+    }
+
     //Calculates how many assets user earns based on time between prompt release and successful submission
-    //TODO: use user ID from variable
     public void calculateScore(){
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(new Runnable() {
@@ -743,7 +771,7 @@ public class MainScreenActivity extends AppCompatActivity {
                     }
                 });
                 //Access User collection, user ID document to pull the time that user submitted valid capture
-                DocumentReference docRefForSubmissionTime = db.collection("User").document("TFOyUbRwYkRS8KqzeC8a");
+                DocumentReference docRefForSubmissionTime = db.collection("User").document(userID);
                 docRefForSubmissionTime.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {

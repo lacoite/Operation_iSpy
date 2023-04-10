@@ -12,8 +12,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="4">
+        android:layout_height="wrap_content">
 
         <ImageButton
             android:id="@+id/closeSettingsButton"
@@ -35,6 +34,46 @@
             android:text="Settings"/>
 
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:layout_weight="4"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:fontFamily="@font/square"
+            android:text="Change Agent Name"
+            android:textColor="@color/foreground_green"/>
+
+        <EditText
+            android:id="@+id/username_edittext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:background="@drawable/button_outline"
+            android:fontFamily="@font/square"
+            android:hint="Enter Agent Name"
+            android:visibility="visible"
+            android:textColor="@color/foreground_green"
+            android:textColorHint="@color/foreground_green"
+            android:layout_marginBottom="15dp"/>
+
+        <Button
+            android:id="@+id/confirm_name_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:backgroundTint="@color/foreground_green"
+            android:textColor="@color/dark_blue_green"
+            android:visibility="visible"
+            android:text="Confirm"/>
+
+    </LinearLayout>
+
 
     <Button
         android:id="@+id/logOutButton"
