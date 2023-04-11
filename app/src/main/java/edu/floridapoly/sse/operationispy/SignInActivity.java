@@ -144,13 +144,82 @@ public class SignInActivity extends AppCompatActivity implements
         }
     }
     // [END onActivityResult]
+    public static String encode(String s) {
+        // create a string to add in the initial
+        // binary code for extra security
+        String ini = "11111111";
+        int cu = 0;
 
+        // create an array
+        int arr[] = new int[11111111];
+
+        // iterate through the string
+        for (int i = 0; i < s.length(); i++) {
+            // put the ascii value of
+            // each character in the array
+            arr[i] = (int) s.charAt(i);
+            cu++;
+        }
+        String res = "";
+
+        // create another array
+        int bin[] = new int[111];
+        int idx = 0;
+
+        // run a loop of the size of string
+        for (int i1 = 0; i1 < cu; i1++) {
+
+            // get the ascii value at position
+            // i1 from the first array
+            int temp = arr[i1];
+
+            // run the second nested loop of same size
+            // and set 0 value in the second array
+            for (int j = 0; j < cu; j++) bin[j] = 0;
+            idx = 0;
+
+            // run a while for temp > 0
+            while (temp > 0) {
+                // store the temp module
+                // of 2 in the 2nd array
+                bin[idx++] = temp % 2;
+                temp = temp / 2;
+            }
+            String dig = "";
+            String temps;
+
+            // run a loop of size 7
+            for (int j = 0; j < 7; j++) {
+
+                // convert the integer to string
+                temps = Integer.toString(bin[j]);
+
+                // add the string using
+                // concatenation function
+                dig = dig.concat(temps);
+            }
+            String revs = "";
+
+            // reverse the string
+            for (int j = dig.length() - 1; j >= 0; j--) {
+                char ca = dig.charAt(j);
+                revs = revs.concat(String.valueOf(ca));
+            }
+            res = res.concat(revs);
+        }
+        // add the extra string to the binary code
+        res = ini.concat(res);
+
+        // return the encrypted code
+        return res;
+    }
     // [START handleSignInResult]
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             accountFound = 0;
             final GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-
+            // set String s to get the account email when they sign in
+            String s = account.getEmail();
             // Signed in successfully, show authenticated UI.
             final FirebaseFirestore db = FirebaseFirestore.getInstance();
             Query docRefForUser = db.collection("User");
@@ -159,10 +228,12 @@ public class SignInActivity extends AppCompatActivity implements
                         @Override
                         public void onComplete(@NonNull Task<QuerySnapshot> task) {
                             if(task.isSuccessful()){
+                                // set a variable named hashedEmail to be the users email from google
+                                String hashedEmail = encode(s);
                                 //For each document returned
                                 for(QueryDocumentSnapshot document : task.getResult()){
                                     //If a user with the provided email is found, set the accountFound code and save the user's ID
-                                    if(String.valueOf(document.getString("Email")).equals(account.getEmail())){
+                                    if(String.valueOf(document.getString("Email")).equals(hashedEmail)){
                                         accountFound = 100;
                                         savedId = document.getId();
                                     }
@@ -175,7 +246,7 @@ public class SignInActivity extends AppCompatActivity implements
 
                                         data.put("Assets", 0);
                                         data.put("Username" , "Agent" + randomNum);
-                                        data.put("Email", account.getEmail());
+                                        data.put("Email", hashedEmail);
                                         data.put("TimeSubmitted", currentTime);
                                         data.put("Submitted", "false");
                                         data.put("Notified",0);
