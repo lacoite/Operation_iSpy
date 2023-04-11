@@ -32,26 +32,45 @@ public class NotificationService extends Service {
     static FirebaseFirestore db;
     Handler handler;
     String userID;
+    static NotificationManager notificationManager;
+    static NotificationManager notificationManager2;
+    static String NOTIFICATION_CHANNEL_ID;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        startNotificationForeground();
-    }
 
-    //Foreground notification letting user know that Operation iSPy will continue in the background to monitor the prompts
-    private void startNotificationForeground() {
-        String NOTIFICATION_CHANNEL_ID = "Example.Permanence";
+        //Build notification channels
+        NOTIFICATION_CHANNEL_ID = "Example.Permanence";
         String channelName = "Background Service";
         NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_DEFAULT);
         chan.setLightColor(Color.BLUE);
         chan.enableVibration(false);
         //chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
 
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         assert notificationManager != null;
         notificationManager.createNotificationChannel(chan);
 
+        notificationManager2 = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
+            NotificationChannel channel = new NotificationChannel("default", "Operation iSpy", NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("Notification from Operation iSpy");
+            channel.enableLights(true);
+            channel.setLightColor(Color.GREEN);
+            channel.enableVibration(true);
+            channel.setImportance(NotificationManager.IMPORTANCE_HIGH);
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            notificationManager2.createNotificationChannel(channel);
+        }
+
+
+        startNotificationForeground();
+    }
+
+    //Foreground notification letting user know that Operation iSPy will continue in the background to monitor the prompts
+    private void startNotificationForeground() {
         Bitmap icon = BitmapFactory.decodeResource(getResources(),R.mipmap.app_logo);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
         Notification notification = notificationBuilder.setOngoing(true)
@@ -63,6 +82,7 @@ public class NotificationService extends Service {
                 .setVibrate(null)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .build();
+
         startForeground(2, notification);
     }
 
@@ -93,20 +113,6 @@ public class NotificationService extends Service {
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
-
-                                NotificationManager notificationManager2 = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                                {
-                                    NotificationChannel channel = new NotificationChannel("default", "Operation iSpy", NotificationManager.IMPORTANCE_HIGH);
-                                    channel.setDescription("Notification from Operation iSpy");
-                                    channel.enableLights(true);
-                                    channel.setLightColor(Color.GREEN);
-                                    channel.enableVibration(true);
-                                    channel.setImportance(NotificationManager.IMPORTANCE_HIGH);
-                                    channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-                                    notificationManager2.createNotificationChannel(channel);
-                                }
-
                                 NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "default")
                                         .setSmallIcon(R.mipmap.app_logo_round)
                                         .setAutoCancel(true)
@@ -115,13 +121,20 @@ public class NotificationService extends Service {
                                         .setContentIntent(pendingIntent)
                                         .setPriority(NotificationCompat.PRIORITY_MAX);
 
-                                notificationManager2.notify(3, builder.build());
-
-                                DocumentReference docRef = db.collection("User").document(userID);
-                                // Update the Notified field to be 0
-                                docRef.update("Notified", 0);
-
-
+                                //Check that the userID has not been set to NO_ID, indicating that the user has signed out.
+                                //If the user is signed in and the prompt has been released, send the notification and update the Notified field in the user document
+                                SharedPreferences sharedPref = getSharedPreferences("UserData", Context.MODE_PRIVATE);
+                                String userCheck = sharedPref.getString("CurrentUserID", "NO_ID");
+                                if(!userCheck.equals("NO_ID")){
+                                    notificationManager2.notify(3, builder.build());
+                                    DocumentReference docRef = db.collection("User").document(userID);
+                                    // Update the Notified field to be 0
+                                    docRef.update("Notified", 0);
+                                }
+                                //If the user has logged out, stop the notification service
+                                else{
+                                    stopSelf();
+                                }
                             } else {
                                 Log.d(TAG, "Current data: null");
                             }

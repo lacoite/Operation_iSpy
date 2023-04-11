@@ -394,37 +394,9 @@ public class MainScreenActivity extends AppCompatActivity {
         }
     };
 
-    //Creates updates the image file with the finalBitmap //TODO: NOT CURRENTLY USED, remove later
-    public static File bitmapToFile(Context context,Bitmap bitmap) {
-        //Create a file to write bitmap data
-        try {
-            tempFile = new File("/data/data/edu.floridapoly.sse.operationispy/cache/currentImage.png");
-
-            //Convert bitmap to byte array
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100 , bos); // YOU can also save it in JPEG
-            byte[] bitmapdata = bos.toByteArray();
-
-            //Write the bytes in file
-            FileOutputStream fos = new FileOutputStream(tempFile);
-            fos.write(bitmapdata);
-            fos.flush();
-            fos.close();
-            return tempFile;
-        }catch (Exception e){
-            e.printStackTrace();
-            return tempFile; // it will return null
-        }
-    }
-
     //Returns application's context
     public static Context getContext(){
         return context;
-    }
-
-    //Returns finalFile //TODO: not currently used, remove later
-    public static File getFile(){
-        return finalFile;
     }
 
     //Returns corrected bitmap
@@ -568,13 +540,16 @@ public class MainScreenActivity extends AppCompatActivity {
                   @Override
                   public void onSuccess(List<DetectedObject> detectedObjects) {
                       if(detectedObjects.isEmpty() != true){
+                          // Temporarily change the loadingText to "Analyzing", make it visible,
+                          loadingText.setText("Analyzing...");
+                          loadingText.setVisibility(View.VISIBLE);
                           for (DetectedObject detectedObject : detectedObjects) {
                               for (DetectedObject.Label label : detectedObject.getLabels()) {
-                                  //Check each returned label in lowercase to the prompt in lowercase. If the prompt is found, temporarily change the loadingText to "Analyzing", make it visible, and update the submissionAccepted variable
+                                  //Check each returned label in lowercase to the prompt in lowercase. If the prompt is found update the submissionAccepted variable
                                   String text = label.getText().toLowerCase(Locale.ROOT);
+                                  loadingText.setText("Analyzing...");
+                                  loadingText.setVisibility(View.VISIBLE);
                                   if(text.contains(prompt.toLowerCase(Locale.ROOT))){
-                                      loadingText.setText("Analyzing...");
-                                      loadingText.setVisibility(View.VISIBLE);
                                       submissionAccepted = 100;
                                   }
                               }}
@@ -604,12 +579,13 @@ public class MainScreenActivity extends AppCompatActivity {
                     .addOnSuccessListener(new OnSuccessListener<List<ImageLabel>>() {
                         @Override
                         public void onSuccess(List<ImageLabel> labels) {
+                            // Temporarily change the loadingText to "Analyzing", make it visible,
+                            loadingText.setText("Analyzing...");
+                            loadingText.setVisibility(View.VISIBLE);
                             for (ImageLabel label : labels) {
-                                //Check each returned label in lowercase to the prompt in lowercase. If the prompt is found, temporarily change the loadingText to "Analyzing", make it visible, and update the submissionAccepted variable
+                                //Check each returned label in lowercase to the prompt in lowercase. If the prompt is found update the submissionAccepted variable
                                 String text = label.getText().toLowerCase(Locale.ROOT);
                                 if(text.contains(prompt.toLowerCase(Locale.ROOT))){
-                                    loadingText.setText("Analyzing...");
-                                    loadingText.setVisibility(View.VISIBLE);
                                     submissionAccepted = 100;
                                 }
                             }
@@ -651,14 +627,29 @@ public class MainScreenActivity extends AppCompatActivity {
                             }
                             //If the submission is not accepted, swap to the TNIFragment, wait 3 seconds, then swap to the HomePromptfragment
                             else{
-                                fragmentSwap(4);
-                                Handler handler = new Handler();
+                                Handler handler = new Handler(Looper.getMainLooper());
                                 handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        fragmentSwap(4);
+                                    }
+                                }, 1500);
+                                Handler handler2 = new Handler(Looper.getMainLooper());
+                                handler2.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        loadingText.setVisibility(View.INVISIBLE);
+                                        loadingText.setText("Loading...");
+                                    }
+                                }, 2000);
+                                Handler handler3 = new Handler();
+                                handler3.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
                                         fragmentSwap(1);
                                     }
-                                }, 3000);
+                                }, 5000);
+
                             }
                         }
                     });
