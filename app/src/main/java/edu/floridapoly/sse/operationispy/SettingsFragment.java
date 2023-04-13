@@ -108,7 +108,7 @@ public class SettingsFragment extends Fragment {
                                             //For each document returned
                                             for(QueryDocumentSnapshot document : task.getResult()){
                                                 //If the entered name is found, update the userTaken variable
-                                                if(document.getString("Username").toLowerCase(Locale.ROOT).equals(newUser.toLowerCase(Locale.ROOT))){
+                                                if((document.getString("Username").toLowerCase(Locale.ROOT).equals(newUser.toLowerCase(Locale.ROOT)))||(newUser.toLowerCase(Locale.ROOT).equals("no_id"))){
                                                     userTaken = 1;
                                                 }
                                             }
